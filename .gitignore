@@ -1,0 +1,8 @@
+# Never track dependencies or build output on a static site
+node_modules/
+dist/
+build/
+.vite/
+*.log
+.DS_Store
+Thumbs.db
