@@ -9,7 +9,7 @@ This document hands off the Spanish learning app to a code-focused session. The 
 - **Stack**: vanilla HTML + CSS + JS, no build step, all-in-one
 - **Persistence**: Claude artifacts `window.storage` API, key `jason-spanish-app-v1`
 - **Audience**: Jason, IT manager near Milton Keynes, learning **Spain Spanish** (vosotros, "th" for c/z, *patata* not *papa*, *zumo* not *jugo*)
-- **9 games**, all in a single `Games` object
+- **10 games**, all in a single `Games` object (the 10th, La Casa, is image-based — see its section below)
 - **Standing rule for any new content**: no em dashes (user preference). Existing em dashes left untouched for consistency.
 
 ## File layout
@@ -257,6 +257,23 @@ Returns `null` if nothing matches — chip shows "Not in dictionary" and gets `.
 - **Didn't know** → `recordResult('recognition', key, false)`
 
 If Jason later asks to make Fuzzy harsher or lighter, that's the spot to change.
+
+## La Casa (game 10, image-based)
+
+`Games.house` ("La Casa") is the 10th game and the only image-based one. Two modes:
+
+- **Name the room**: shows a room image, player types the room in Spanish (no hints).
+- **Name the object**: shows a room image with one object ringed and its English name on a label pill; player types the object in Spanish. Accent- and article-tolerant (e.g. "el sofa" is accepted for "sofá").
+
+Data lives in `DATA.houseScenes` (9 rooms: dormitorio, bano, salon, cocina, comedor, aseo, garaje, pasillo, estudio). Each scene: `key`, `img` (`assets/<key>.jpg`), `room:{es,en}`, and `objects:[{es,en,x,y,r}]` where x,y are the object centre and r the ring radius, all normalized 0..1 (x and r as a fraction of image width, y of height). Progress keys: `room:<es>` and `obj:<sceneKey>:<es>`. `house` is in `GAME_KEYS`. Stage max-width and marker/label CSS are under the `.house-*` rules.
+
+Images are "dollhouse cutaway" renders (two near walls removed, ~1200px wide JPEGs, ~100-150KB each) in `assets/`. Wall items (mirror, TV, pictures, clock, curtains) are visible in this view, unlike an earlier top-down attempt that was scrapped.
+
+### Adding or recalibrating a room
+
+Coordinates are placed by a throwaway HTML calibration page (not committed): it loads each room image, names each target object, and the user clicks the object's centre then its edge to record x,y,r. It exports the `houseScenes` JSON, pasted into `DATA.houseScenes`. This workflow exists because the assistant cannot place pixel-accurate coordinates by sight (it only sees downscaled images) — the human clicks, the assistant wires. To add a room: generate a cutaway image (see the prompt style in chat history), optimise to `assets/<key>.jpg`, rebuild the calibrator for it, have the user calibrate, then add the scene to `houseScenes` and re-run the data/DOM checks.
+
+New vocab added alongside this game: a `garaje` vocab topic (coche, moto, bicicleta, banco de trabajo, herramientas, caja de herramientas, cajas, puerta del garaje) and extra `houseObjects` (bañera, fregadero, isla, aparador, cuadro, puerta, alfombra).
 
 ## Conventions and gotchas
 

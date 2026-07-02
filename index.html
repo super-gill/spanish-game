@@ -476,6 +476,56 @@
 
   .hidden { display: none !important; }
 
+  /* La Casa image game (image-based room/object quiz) */
+  .house-stage {
+    position: relative;
+    max-width: 640px;
+    margin: 0 auto 1.25rem;
+    border: 1px solid #d5cfc1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #efeae0;
+    min-height: 120px;
+  }
+  .house-img { width: 100%; display: block; }
+  .house-marker {
+    position: absolute;
+    width: 12%;
+    aspect-ratio: 1 / 1;
+    transform: translate(-50%, -50%);
+    border: 4px solid #c2624a;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.7), 0 2px 8px rgba(0,0,0,0.35);
+    pointer-events: none;
+  }
+  .house-marker-label {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    background: #1a2332;
+    color: #fbf8f3;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .house-marker.label-below .house-marker-label {
+    bottom: auto;
+    top: 100%;
+    margin-bottom: 0;
+    margin-top: 8px;
+  }
+  .house-img-missing {
+    padding: 2rem 1.25rem;
+    text-align: center;
+    color: #7a2d2d;
+    font-size: 0.9rem;
+  }
+
   @media (max-width: 480px) {
     .prompt-main { font-size: 1.65rem; }
     .input-row { flex-direction: column; }
@@ -655,7 +705,9 @@ const DATA = {
       {en:'dining room', es:'comedor'}, {en:'bedroom', es:'dormitorio'},
       {en:'bathroom', es:'cuarto de baño'}, {en:'toilet (small)', es:'aseo'},
       {en:'hallway', es:'pasillo'}, {en:'office / study', es:'estudio'},
-      {en:'garage', es:'garaje'}
+      {en:'garage', es:'garaje'},
+      {en:'utility room', es:'lavadero'}, {en:'terrace', es:'terraza'},
+      {en:'living room', es:'sala de estar'}
     ],
     houseObjects: [
       {en:'bed', es:'cama'}, {en:'bedside table', es:'mesilla de noche'},
@@ -671,7 +723,39 @@ const DATA = {
       {en:'oven', es:'horno'}, {en:'fridge', es:'frigorífico'},
       {en:'chair', es:'silla'}, {en:'table', es:'mesa'},
       {en:'posters', es:'pósteres'}, {en:'bath mat', es:'alfombra de baño'},
-      {en:'shower curtain', es:'cortina de ducha'}
+      {en:'shower curtain', es:'cortina de ducha'},
+      {en:'bathtub', es:'bañera'}, {en:'kitchen sink', es:'fregadero'},
+      {en:'kitchen island', es:'isla'}, {en:'sideboard', es:'aparador'},
+      {en:'picture / painting', es:'cuadro'}, {en:'door', es:'puerta'},
+      {en:'rug', es:'alfombra'},
+      {en:'coffee table', es:'mesa de centro'}, {en:'console table', es:'consola'},
+      {en:'office chair', es:'silla de oficina'}, {en:'centrepiece', es:'centro de mesa'},
+      {en:'tablecloth', es:'mantel'}, {en:'microwave', es:'microondas'},
+      {en:'stool', es:'taburete'}, {en:'printer', es:'impresora'},
+      {en:'cushions', es:'cojines'}, {en:'chest of drawers', es:'cómoda'},
+      {en:'coat rack', es:'perchero'}, {en:'shoe rack', es:'zapatero'},
+      {en:'frying pan', es:'sartén'}, {en:'pot', es:'olla'},
+      {en:'saucepan', es:'cacerola'}, {en:'coffee maker', es:'cafetera'},
+      {en:'blender', es:'batidora'}, {en:'toaster', es:'tostadora'},
+      {en:'ceramic hob', es:'vitrocerámica'}, {en:'cutlery', es:'cubiertos'},
+      {en:'crockery', es:'vajilla'}, {en:'napkins', es:'servilletas'},
+      {en:'washing machine', es:'lavadora'}, {en:'tumble dryer', es:'secadora'},
+      {en:'detergent', es:'detergente'}, {en:'ironing board', es:'tabla de planchar'},
+      {en:'mop', es:'fregona'}, {en:'watering can', es:'regadera'},
+      {en:'pillow', es:'almohada'}, {en:'mattress', es:'colchón'},
+      {en:'blanket', es:'manta'}, {en:'soap', es:'jabón'},
+      {en:'sponge', es:'esponja'}, {en:'toothbrush', es:'cepillo de dientes'},
+      {en:'toilet paper', es:'papel higiénico'}, {en:'shower gel', es:'gel de ducha'},
+      {en:'dining table', es:'mesa de comedor'}, {en:'sofa bed', es:'sofá cama'},
+      {en:'sun lounger', es:'tumbona'}, {en:'barbecue', es:'barbacoa'},
+      {en:'candles', es:'velas'}, {en:'basket', es:'cesta'},
+      {en:'fridge', es:'nevera'}, {en:'television', es:'televisor'}
+    ],
+    garaje: [
+      {en:'car', es:'coche'}, {en:'motorbike', es:'moto'},
+      {en:'bicycle', es:'bicicleta'}, {en:'workbench', es:'banco de trabajo'},
+      {en:'tools', es:'herramientas'}, {en:'toolbox', es:'caja de herramientas'},
+      {en:'boxes', es:'cajas'}, {en:'garage door', es:'puerta del garaje'}
     ],
     greetings: [
       {en:'good morning', es:'buenos días'},
@@ -699,6 +783,140 @@ const DATA = {
       {en:'winter', es:'invierno'}, {en:'spring', es:'primavera'}
     ]
   },
+
+  // HOUSE SCENES: top-down room images for the image-based "La Casa" game.
+  // Each scene has a room (for "name the room" mode) and a list of objects with
+  // normalized coordinates x,y in 0..1 (x = left→right, y = top→bottom) marking
+  // where each object sits in the image (for "name the object" mode).
+  // Images live in assets/<key>.png. No text/labels are baked into the images.
+  houseScenes: [
+    { key:'dormitorio', img:'assets/dormitorio.jpg', room:{es:'dormitorio', en:'bedroom'},
+      objects:[
+        {es:'cama', en:'bed', x:0.3677, y:0.5438, r:0.211},
+        {es:'mesilla de noche', en:'bedside table', x:0.1563, y:0.6212, r:0.0446},
+        {es:'lámpara', en:'lamp', x:0.1513, y:0.5197, r:0.0321},
+        {es:'armario', en:'wardrobe', x:0.7094, y:0.3674, r:0.0563},
+        {es:'estantería', en:'bookshelf', x:0.8267, y:0.5023, r:0.0367},
+        {es:'estante', en:'wall shelf', x:0.8858, y:0.326, r:0.0509},
+        {es:'espejo', en:'mirror', x:0.9058, y:0.4689, r:0.0361},
+        {es:'reloj', en:'clock', x:0.6182, y:0.2338, r:0.0314},
+        {es:'cuadro', en:'picture', x:0.2335, y:0.2953, r:0.0494},
+        {es:'cortinas', en:'curtains', x:0.4589, y:0.2659, r:0.0311},
+        {es:'ventana', en:'window', x:0.517, y:0.2418, r:0.0962},
+        {es:'alfombra', en:'rug', x:0.6393, y:0.7201, r:0.0566},
+        {es:'planta', en:'plant', x:0.4048, y:0.2872, r:0.029},
+        {es:'cómoda', en:'chest of drawers', x:0.6012, y:0.4315, r:0.0539}
+      ]},
+    { key:'bano', img:'assets/bano.jpg', room:{es:'cuarto de baño', en:'bathroom'},
+      objects:[
+        {es:'bañera', en:'bathtub', x:0.2655, y:0.6934, r:0.1658},
+        {es:'ducha', en:'shower', x:0.6293, y:0.346, r:0.196},
+        {es:'water', en:'toilet', x:0.4248, y:0.4943, r:0.0846},
+        {es:'lavabo', en:'sink', x:0.7575, y:0.5371, r:0.0462},
+        {es:'espejo', en:'mirror', x:0.8146, y:0.3768, r:0.0829},
+        {es:'toalla', en:'towel', x:0.2164, y:0.4021, r:0.0667},
+        {es:'alfombra de baño', en:'bath mat', x:0.6192, y:0.7241, r:0.0816},
+        {es:'cortina de ducha', en:'shower curtain', x:0.5882, y:0.3434, r:0.0281},
+        {es:'estante', en:'shelf', x:0.2024, y:0.2993, r:0.0762},
+        {es:'cortinas', en:'curtains', x:0.3236, y:0.2672, r:0.0301},
+        {es:'ventana', en:'window', x:0.3928, y:0.2485, r:0.1082},
+        {es:'planta', en:'plant', x:0.3417, y:0.4823, r:0.0342}
+      ]},
+    { key:'salon', img:'assets/salon.jpg', room:{es:'salón', en:'living room'},
+      objects:[
+        {es:'sofá', en:'sofa', x:0.2615, y:0.497, r:0.1578},
+        {es:'sillón', en:'armchair', x:0.6433, y:0.6961, r:0.117},
+        {es:'mesa de centro', en:'coffee table', x:0.4539, y:0.5932, r:0.1196},
+        {es:'televisión', en:'television', x:0.6804, y:0.3273, r:0.0847},
+        {es:'estantería', en:'bookshelf', x:0.7956, y:0.4128, r:0.0724},
+        {es:'estante', en:'shelf', x:0.8878, y:0.35, r:0.0502},
+        {es:'lámpara', en:'lamp', x:0.3437, y:0.3126, r:0.0434},
+        {es:'cuadro', en:'picture', x:0.2134, y:0.3046, r:0.1134},
+        {es:'reloj', en:'clock', x:0.6022, y:0.2231, r:0.033},
+        {es:'cortinas', en:'curtains', x:0.5451, y:0.2792, r:0.0244},
+        {es:'ventana', en:'window', x:0.501, y:0.2311, r:0.1123},
+        {es:'alfombra', en:'rug', x:0.4289, y:0.7816, r:0.0375},
+        {es:'planta', en:'plant', x:0.3968, y:0.2712, r:0.0295},
+        {es:'cojines', en:'cushions', x:0.2976, y:0.4395, r:0.0323}
+      ]},
+    { key:'cocina', img:'assets/cocina.jpg', room:{es:'cocina', en:'kitchen'},
+      objects:[
+        {es:'horno', en:'oven / hob', x:0.6553, y:0.3834, r:0.0229},
+        {es:'frigorífico', en:'fridge', x:0.7776, y:0.4943, r:0.037},
+        {es:'fregadero', en:'kitchen sink', x:0.3507, y:0.3848, r:0.035},
+        {es:'isla', en:'kitchen island', x:0.5411, y:0.5932, r:0.1557},
+        {es:'mesa', en:'table', x:0.2836, y:0.7054, r:0.1245},
+        {es:'silla', en:'chair', x:0.3347, y:0.7963, r:0.0411},
+        {es:'armario', en:'cupboard', x:0.2856, y:0.4997, r:0.0311},
+        {es:'ventana', en:'window', x:0.3277, y:0.2445, r:0.068},
+        {es:'cortinas', en:'curtains', x:0.2655, y:0.2578, r:0.0263},
+        {es:'planta', en:'plant', x:0.1693, y:0.4315, r:0.0338},
+        {es:'microondas', en:'microwave', x:0.7275, y:0.3206, r:0.0363},
+        {es:'taburete', en:'stool', x:0.519, y:0.7201, r:0.0366}
+      ]},
+    { key:'comedor', img:'assets/comedor.jpg', room:{es:'comedor', en:'dining room'},
+      objects:[
+        {es:'mesa', en:'table', x:0.5681, y:0.6079, r:0.0284},
+        {es:'silla', en:'chair', x:0.6643, y:0.7027, r:0.0314},
+        {es:'aparador', en:'sideboard', x:0.6653, y:0.4382, r:0.0389},
+        {es:'lámpara', en:'lamp', x:0.5882, y:0.3126, r:0.0381},
+        {es:'cuadro', en:'picture', x:0.6994, y:0.2632, r:0.1156},
+        {es:'cortinas', en:'curtains', x:0.2635, y:0.3634, r:0.0361},
+        {es:'ventana', en:'window', x:0.3317, y:0.2899, r:0.121},
+        {es:'alfombra', en:'rug', x:0.5792, y:0.8617, r:0.0318},
+        {es:'planta', en:'plant', x:0.1693, y:0.4195, r:0.035},
+        {es:'centro de mesa', en:'centrepiece', x:0.5251, y:0.5504, r:0.0502},
+        {es:'mantel', en:'tablecloth', x:0.6303, y:0.5838, r:0.0261}
+      ]},
+    { key:'aseo', img:'assets/aseo.jpg', room:{es:'aseo', en:'toilet (small)'},
+      objects:[
+        {es:'water', en:'toilet', x:0.3637, y:0.5865, r:0.0876},
+        {es:'lavabo', en:'sink', x:0.6403, y:0.509, r:0.0786},
+        {es:'espejo', en:'mirror', x:0.6864, y:0.2966, r:0.0993},
+        {es:'toalla', en:'towel', x:0.7405, y:0.5571, r:0.05},
+        {es:'estante', en:'shelf', x:0.5641, y:0.2538, r:0.0685},
+        {es:'ventana', en:'window', x:0.3717, y:0.2351, r:0.1185},
+        {es:'planta', en:'plant', x:0.4088, y:0.3153, r:0.05}
+      ]},
+    { key:'garaje', img:'assets/garaje.jpg', room:{es:'garaje', en:'garage'},
+      objects:[
+        {es:'coche', en:'car', x:0.4088, y:0.5491, r:0.1274},
+        {es:'moto', en:'motorbike', x:0.6483, y:0.5865, r:0.0703},
+        {es:'bicicleta', en:'bicycle', x:0.7786, y:0.5411, r:0.0559},
+        {es:'banco de trabajo', en:'workbench', x:0.4709, y:0.3166, r:0.0643},
+        {es:'herramientas', en:'tools', x:0.4419, y:0.2004, r:0.0403},
+        {es:'caja de herramientas', en:'toolbox', x:0.2665, y:0.3874, r:0.0302},
+        {es:'cajas', en:'boxes', x:0.5902, y:0.1857, r:0.055},
+        {es:'estantería', en:'shelving', x:0.6523, y:0.2953, r:0.1288},
+        {es:'armario', en:'cupboard', x:0.1743, y:0.4195, r:0.0595}
+      ]},
+    { key:'pasillo', img:'assets/pasillo.jpg', room:{es:'pasillo', en:'hallway'},
+      objects:[
+        {es:'puerta', en:'door', x:0.2776, y:0.6573, r:0.0384},
+        {es:'alfombra', en:'rug', x:0.4739, y:0.7468, r:0.0322},
+        {es:'cuadro', en:'picture', x:0.3537, y:0.489, r:0.0373},
+        {es:'espejo', en:'mirror', x:0.4329, y:0.3888, r:0.0278},
+        {es:'lámpara', en:'lamp', x:0.4148, y:0.497, r:0.0252},
+        {es:'consola', en:'console table', x:0.4669, y:0.5264, r:0.0688},
+        {es:'planta', en:'plant', x:0.6403, y:0.2017, r:0.0274}
+      ]},
+    { key:'estudio', img:'assets/estudio.jpg', room:{es:'estudio', en:'office / study'},
+      objects:[
+        {es:'escritorio', en:'desk', x:0.2806, y:0.5558, r:0.0978},
+        {es:'silla de oficina', en:'office chair', x:0.3497, y:0.5745, r:0.0551},
+        {es:'ordenador', en:'computer', x:0.2525, y:0.489, r:0.0424},
+        {es:'estantería', en:'bookshelf', x:0.7054, y:0.4128, r:0.1206},
+        {es:'sillón', en:'armchair', x:0.7986, y:0.6146, r:0.0453},
+        {es:'lámpara', en:'lamp', x:0.8878, y:0.6239, r:0.0347},
+        {es:'reloj', en:'clock', x:0.3657, y:0.2445, r:0.0307},
+        {es:'cuadro', en:'picture', x:0.2345, y:0.3153, r:0.0938},
+        {es:'cortinas', en:'curtains', x:0.5731, y:0.3206, r:0.0284},
+        {es:'ventana', en:'window', x:0.5321, y:0.2458, r:0.0808},
+        {es:'alfombra', en:'rug', x:0.5301, y:0.6987, r:0.0465},
+        {es:'planta', en:'plant', x:0.4259, y:0.338, r:0.0362},
+        {es:'impresora', en:'printer', x:0.1503, y:0.517, r:0.0489}
+      ]}
+  ],
 
   // VERBS: conjugations for present tense (all) and past tense (regular only).
   // Past tense is included only for verbs with fully-regular preterite forms.
@@ -1367,7 +1585,7 @@ const DATA = {
 // STORAGE
 // =============================================================================
 const STORAGE_KEY = 'jason-spanish-app-v1';
-const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','timeNumbers','placeAction','dialogue','recognition'];
+const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','timeNumbers','placeAction','dialogue','recognition','house'];
 
 // Use null-prototype objects so keys like "constructor", "toString", etc.
 // don't collide with Object.prototype properties.
@@ -1426,6 +1644,55 @@ async function saveProgress() {
 // =============================================================================
 function normalize(s) {
   return s.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// Words whose accent or \u00f1, if dropped, spell a DIFFERENT real word. Keyed by the
+// de-accented form -> what that de-accented form actually means. Used to warn the
+// learner (in the yellow "accent matters" feedback) what they literally wrote.
+const ACCENT_TRAPS = {
+  'ano': 'anus (a\u00f1o = year)',
+  'papa': 'potato, or the Pope (pap\u00e1 = dad)',
+  'si': 'if (s\u00ed = yes)',
+  'tu': 'your (t\u00fa = you)',
+  'el': 'the (\u00e9l = he)',
+  'mi': 'my (m\u00ed = me)',
+  'te': 'you, object pronoun (t\u00e9 = tea)',
+  'mas': 'but (m\u00e1s = more)',
+  'esta': 'this (est\u00e1 = is)',
+  'ingles': 'groins (ingl\u00e9s = English)',
+  'cono': 'cone (co\u00f1o is a vulgar exclamation)'
+};
+
+// Returns a warning string if the de-accented form of `word` is a real different word.
+function accentTrapNote(word) {
+  const k = normalize(word);
+  return ACCENT_TRAPS[k]
+    ? ` <strong>Heads up:</strong> without the accent, "${k}" means <em>${ACCENT_TRAPS[k]}</em>.`
+    : '';
+}
+
+// Synonyms: alternative Spanish words with the same meaning. Any member of a group
+// is accepted as the answer for any other, and members are kept from showing up as
+// each other's wrong multiple-choice options.
+const SYNONYM_GROUPS = [
+  ['frigorífico', 'nevera'],
+  ['televisión', 'televisor'],
+  ['salón', 'sala de estar']
+];
+const WORD_ALTS = {};
+SYNONYM_GROUPS.forEach(g => g.forEach(w => { WORD_ALTS[w] = g.filter(x => x !== w); }));
+function altsFor(es) { return WORD_ALTS[es] || []; }
+
+// How well `answer` matches `expected`, tolerant of a leading article, accents and
+// synonyms. Returns 'exact', 'accent' (right word, accent off), or 'no'.
+function answerMatch(answer, expected) {
+  const strip = s => s.toLowerCase().trim().replace(/^(el|la|los|las|un|una|unos|unas)\s+/, '').trim();
+  const cands = [expected, ...altsFor(expected)];
+  const a = strip(answer);
+  if (cands.some(c => a === strip(c))) return 'exact';
+  const na = normalize(a);
+  if (cands.some(c => na === normalize(strip(c)))) return 'accent';
+  return 'no';
 }
 
 function recordResult(game, key, correct) {
@@ -1696,7 +1963,7 @@ Games.verbs = {
       fb = `<div class="feedback correct">✓ Correct: <strong>${expected}</strong></div>`;
     } else if (nu === ne) {
       recordResult('verbs', key, true);
-      fb = `<div class="feedback almost">Nearly. Your spelling matches but the accent matters: <strong>${expected}</strong>. In Spanish, accents can change meaning (e.g. <em>hablo</em> = I speak, <em>habló</em> = he/she spoke).</div>`;
+      fb = `<div class="feedback almost">Nearly. Your spelling matches but the accent matters: <strong>${expected}</strong>. In Spanish, accents can change meaning (e.g. <em>hablo</em> = I speak, <em>habló</em> = he/she spoke).${accentTrapNote(expected)}</div>`;
     } else {
       recordResult('verbs', key, false);
       fb = `<div class="feedback incorrect">✗ The correct form is <strong>${expected}</strong>. You wrote "<em>${input}</em>".</div>`;
@@ -1778,7 +2045,8 @@ Games.vocab = {
 
     const area = document.getElementById('vocab-input-area');
     if (this.state.mode === 'choice') {
-      const distractors = shuffle(pool.filter(p => p.es !== word.es)).slice(0, 3);
+      const exclude = new Set([word.es, ...altsFor(word.es)]);
+      const distractors = shuffle(pool.filter(p => !exclude.has(p.es))).slice(0, 3);
       const options = shuffle([word, ...distractors]);
       area.innerHTML = `<div class="option-grid">${options.map(o => `<button class="option-btn" data-value="${o.es}">${o.es}</button>`).join('')}</div>`;
       area.querySelectorAll('.option-btn').forEach(b => b.addEventListener('click', () => this.check(b.dataset.value, b)));
@@ -1799,17 +2067,19 @@ Games.vocab = {
     if (this.state.awaitingNext) { this.next(); this.refreshStatsBlock(); return; }
     if (!answer) return;
     const expected = this.state.current.es;
-    const nu = normalize(answer), ne = normalize(expected);
+    const alts = altsFor(expected);
+    const altNote = alts.length ? ` <span style="color:#7a7466">(also: ${alts.join(', ')})</span>` : '';
+    const m = answerMatch(answer, expected);
     let fb;
-    if (answer.toLowerCase() === expected.toLowerCase()) {
+    if (m === 'exact') {
       recordResult('vocab', expected, true);
-      fb = `<div class="feedback correct">✓ Correct: <strong>${expected}</strong></div>`;
-    } else if (nu === ne) {
+      fb = `<div class="feedback correct">✓ Correct: <strong>${expected}</strong>${altNote}</div>`;
+    } else if (m === 'accent') {
       recordResult('vocab', expected, true);
-      fb = `<div class="feedback almost">Nearly. The accent matters: <strong>${expected}</strong>.</div>`;
+      fb = `<div class="feedback almost">Nearly. The accent matters: <strong>${expected}</strong>.${accentTrapNote(expected)}</div>`;
     } else {
       recordResult('vocab', expected, false);
-      fb = `<div class="feedback incorrect">✗ Correct answer: <strong>${expected}</strong>. You picked "<em>${answer}</em>".</div>`;
+      fb = `<div class="feedback incorrect">✗ Correct answer: <strong>${expected}</strong>${altNote}. You picked "<em>${answer}</em>".</div>`;
     }
     document.getElementById('feedback-area').innerHTML = fb + `<div style="margin-top:0.5rem;"><button class="primary" id="vocab-next">Next</button></div>`;
     document.getElementById('vocab-next').addEventListener('click', () => { this.next(); this.refreshStatsBlock(); });
@@ -1974,7 +2244,7 @@ Games.fillBlank = {
       fb = `<div class="feedback correct">✓ <strong>${this.state.current.es}</strong></div>`;
     } else if (nu === ne) {
       recordResult('fillBlank', this.state.current.es, true);
-      fb = `<div class="feedback almost">Nearly. Watch the accent: <strong>${expected}</strong>. Full: <em>${this.state.current.es}</em>.</div>`;
+      fb = `<div class="feedback almost">Nearly. Watch the accent: <strong>${expected}</strong>. Full: <em>${this.state.current.es}</em>.${accentTrapNote(expected)}</div>`;
     } else {
       recordResult('fillBlank', this.state.current.es, false);
       fb = `<div class="feedback incorrect">✗ The missing word is <strong>${expected}</strong>. Full: <em>${this.state.current.es}</em>.</div>`;
@@ -2179,7 +2449,7 @@ Games.timeNumbers = {
       fb = `<div class="feedback correct">✓ <strong>${c.expected}</strong></div>`;
     } else if (nu === ne) {
       recordResult('timeNumbers', c.key, true);
-      fb = `<div class="feedback almost">Nearly. The accent matters: <strong>${c.expected}</strong>.</div>`;
+      fb = `<div class="feedback almost">Nearly. The accent matters: <strong>${c.expected}</strong>.${accentTrapNote(c.expected)}</div>`;
     } else {
       recordResult('timeNumbers', c.key, false);
       fb = `<div class="feedback incorrect">✗ Answer: <strong>${c.expected}</strong>. You wrote "<em>${input}</em>".</div>`;
@@ -2420,7 +2690,7 @@ Games.dialogue = {
       fb = `<div class="feedback correct">✓ <strong>${expected}</strong></div>`;
     } else if (nu === ne) {
       correct = true;
-      fb = `<div class="feedback almost">Nearly. Watch accents/punctuation: <strong>${expected}</strong>.</div>`;
+      fb = `<div class="feedback almost">Nearly. Watch accents/punctuation: <strong>${expected}</strong>.${accentTrapNote(expected)}</div>`;
     } else {
       fb = `<div class="feedback incorrect">✗ Expected: <strong>${expected}</strong>. You wrote: <em>${input}</em>.</div>`;
     }
@@ -2442,7 +2712,7 @@ Games.dialogue = {
 
 // --- 9. RECOGNITION (Reconocer) ---
 Games.recognition = {
-  name: 'Reconocer',
+  name: 'Recognition',
   description: 'Recognize words and parse sentences',
   state: { mode: 'words', currentItem: null, revealed: false, activeWordIdx: -1 },
 
@@ -2640,7 +2910,7 @@ Games.recognition = {
   TYPE_BY_TOPIC: {
     family: 'noun', pets: 'noun', food: 'noun', city: 'noun',
     jobs: 'noun', countries: 'place', days: 'noun', homes: 'noun',
-    rooms: 'noun', houseObjects: 'noun', seasons: 'noun',
+    rooms: 'noun', houseObjects: 'noun', garaje: 'noun', seasons: 'noun',
     weather: 'phrase', timeOfDay: 'phrase', greetings: 'phrase',
     adjectives: 'adjective', colours: 'adjective',
     emotions: 'adjective', flavours: 'adjective', nationalities: 'adjective'
@@ -3110,6 +3380,147 @@ Games.recognition = {
     recordResult('recognition', key, rating === 'knew');
     this.refreshStatsBlock();
     setTimeout(() => this.next(), 200);
+  }
+};
+
+// --- 10. LA CASA (image-based) ---
+Games.house = {
+  name: 'The House',
+  description: 'Name rooms and household objects',
+  state: { mode: 'room', current: null, currentObj: null, awaitingNext: false },
+
+  init() {
+    this.state = { mode: 'room', current: null, currentObj: null, awaitingNext: false };
+    const main = document.getElementById('main');
+    main.innerHTML = `
+      <div class="controls house-mode-toggle">
+        <button class="filter-btn active" data-mode="room">Name the room</button>
+        <button class="filter-btn" data-mode="object">Name the object</button>
+      </div>
+      <div class="prompt-ask" id="house-ask">Which room is this?</div>
+      <div class="house-stage" id="house-stage">
+        <img class="house-img" id="house-img" alt="" decoding="async">
+        <div class="house-marker hidden" id="house-marker"></div>
+        <div class="house-img-missing hidden" id="house-missing"></div>
+      </div>
+      <div id="house-input-area"></div>
+      <div id="feedback-area"></div>
+      ${this.renderStatsBlock()}
+    `;
+    main.querySelectorAll('[data-mode]').forEach(b =>
+      b.addEventListener('click', () => this.setMode(b.dataset.mode)));
+    const img = document.getElementById('house-img');
+    img.addEventListener('error', () => {
+      document.getElementById('house-missing').classList.remove('hidden');
+      document.getElementById('house-missing').textContent =
+        'Image not found: ' + (this.state.current ? this.state.current.img : '') +
+        ' — add it to the assets folder.';
+    });
+    img.addEventListener('load', () => {
+      document.getElementById('house-missing').classList.add('hidden');
+    });
+    this.next();
+  },
+
+  renderStatsBlock() {
+    const s = gameAggregateStats('house');
+    const acc = s.total > 0 ? Math.round((s.correct/s.total)*100) + '%' : '—';
+    return `<div class="game-stats" id="stats-block">
+      <div class="stats-row"><span>Attempts</span><strong>${s.total}</strong></div>
+      <div class="stats-row"><span>Accuracy</span><strong>${acc}</strong></div>
+    </div>`;
+  },
+
+  setMode(m) {
+    this.state.mode = m;
+    document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+    document.getElementById('house-ask').textContent =
+      m === 'room' ? 'Which room is this?' : 'Name the highlighted object';
+    this.next();
+  },
+
+  // Accept the answer with or without a leading article, accent-tolerant.
+  accepts(answer, expected) {
+    const strip = s => normalize(s).replace(/^(el|la|los|las|un|una|unos|unas)\s+/, '').trim();
+    return strip(answer) === strip(expected);
+  },
+
+  next() {
+    const scenes = DATA.houseScenes;
+    const scene = pickWeighted(scenes, sc => weightForKey('house', 'room:' + sc.room.es));
+    this.state.current = scene;
+
+    const img = document.getElementById('house-img');
+    const marker = document.getElementById('house-marker');
+    document.getElementById('feedback-area').innerHTML = '';
+    document.getElementById('house-missing').classList.add('hidden');
+    this.state.awaitingNext = false;
+    if (img.getAttribute('src') !== scene.img) img.src = scene.img;
+
+    if (this.state.mode === 'object') {
+      // Pick an object within this scene, weighting weak spots.
+      const obj = pickWeighted(scene.objects, o => weightForKey('house', 'obj:' + scene.key + ':' + o.es));
+      this.state.currentObj = obj;
+      marker.classList.remove('hidden');
+      marker.style.left = (obj.x * 100) + '%';
+      marker.style.top = (obj.y * 100) + '%';
+      marker.style.width = ((obj.r || 0.06) * 2 * 100) + '%';
+      // Flip the English-name label below the ring when the object sits near the top edge.
+      marker.classList.toggle('label-below', obj.y < 0.2);
+      marker.innerHTML = '<span class="house-marker-label">' + obj.en + '</span>';
+    } else {
+      this.state.currentObj = null;
+      marker.classList.add('hidden');
+      marker.innerHTML = '';
+    }
+    this.renderInput();
+  },
+
+  renderInput() {
+    const area = document.getElementById('house-input-area');
+    area.innerHTML = `
+      <div class="input-row">
+        <input type="text" id="house-input" placeholder="Type in Spanish" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="primary" id="house-submit">Check</button>
+      </div>`;
+    const input = document.getElementById('house-input');
+    input.focus();
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); this.check(input.value.trim()); }});
+    document.getElementById('house-submit').addEventListener('click', () => this.check(input.value.trim()));
+  },
+
+  check(answer) {
+    if (this.state.awaitingNext) { this.next(); this.refreshStatsBlock(); return; }
+    if (!answer) return;
+    const isRoom = this.state.mode === 'room';
+    const expected = isRoom ? this.state.current.room.es : this.state.currentObj.es;
+    const en = isRoom ? this.state.current.room.en : this.state.currentObj.en;
+    const key = isRoom
+      ? 'room:' + this.state.current.room.es
+      : 'obj:' + this.state.current.key + ':' + this.state.currentObj.es;
+
+    let fb;
+    const m = answerMatch(answer, expected);
+    if (m !== 'no') {
+      recordResult('house', key, true);
+      if (m === 'exact') {
+        fb = `<div class="feedback correct">✓ Correct: <strong>${expected}</strong> (${en})</div>`;
+      } else {
+        fb = `<div class="feedback almost">Nearly. The accent matters: <strong>${expected}</strong> (${en}).${accentTrapNote(expected)}</div>`;
+      }
+    } else {
+      recordResult('house', key, false);
+      fb = `<div class="feedback incorrect">✗ Answer: <strong>${expected}</strong> (${en}). You wrote "<em>${answer}</em>".</div>`;
+    }
+    document.getElementById('feedback-area').innerHTML =
+      fb + `<div style="margin-top:0.5rem;"><button class="primary" id="house-next">Next</button></div>`;
+    document.getElementById('house-next').addEventListener('click', () => { this.next(); this.refreshStatsBlock(); });
+    this.state.awaitingNext = true;
+  },
+
+  refreshStatsBlock() {
+    const block = document.getElementById('stats-block');
+    if (block) block.outerHTML = this.renderStatsBlock();
   }
 };
 
