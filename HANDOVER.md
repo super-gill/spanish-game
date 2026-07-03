@@ -9,7 +9,7 @@ This document hands off the Spanish learning app to a code-focused session. The 
 - **Stack**: vanilla HTML + CSS + JS, no build step, all-in-one
 - **Persistence**: Claude artifacts `window.storage` API, key `jason-spanish-app-v1`
 - **Audience**: Jason, IT manager near Milton Keynes, learning **Spain Spanish** (vosotros, "th" for c/z, *patata* not *papa*, *zumo* not *jugo*)
-- **10 games**, all in a single `Games` object (the 10th, La Casa, is image-based — see its section below)
+- **13 games**, all in a single `Games` object. Image/visual games: The House, The City (name highlighted room/place/object), The Clock (SVG clock), Errands (click the right building for a character's request). See La Casa section below and `ROADMAP.md`.
 - **Standing rule for any new content**: no em dashes (user preference). Existing em dashes left untouched for consistency.
 
 ## File layout
