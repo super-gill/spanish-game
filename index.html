@@ -620,7 +620,22 @@ const DATA = {
       {en:'police station', es:'comisaría'}, {en:'fire station', es:'estación de bomberos'},
       {en:'bus stop', es:'parada de autobús'}, {en:'clinic', es:'clínica'},
       {en:'bullring', es:'plaza de toros'}, {en:'stadium', es:'estadio'},
-      {en:'bakery', es:'panadería'}
+      {en:'bakery', es:'panadería'},
+      {en:'electronics shop', es:'tienda de electrónicos'}
+    ],
+    cityObjects: [
+      {en:'traffic light', es:'semáforo'}, {en:'streetlight', es:'farola'},
+      {en:'litter bin', es:'papelera'}, {en:'postbox', es:'buzón'},
+      {en:'zebra crossing', es:'paso de cebra'}, {en:'fountain', es:'fuente'},
+      {en:'statue', es:'estatua'}, {en:'tree', es:'árbol'},
+      {en:'road sign', es:'señal'}, {en:'flag', es:'bandera'},
+      {en:'bus', es:'autobús'}, {en:'train', es:'tren'},
+      {en:'taxi', es:'taxi'}, {en:'platform', es:'andén'},
+      {en:'pond', es:'estanque'}, {en:'swings', es:'columpios'},
+      {en:'slide', es:'tobogán'}, {en:'flowers', es:'flores'},
+      {en:'square', es:'plaza'}, {en:'street', es:'calle'},
+      {en:'pavement', es:'acera'}, {en:'ambulance', es:'ambulancia'},
+      {en:'fire engine', es:'coche de bomberos'}
     ],
     jobs: [
       {en:'IT manager', es:'gerente de IT'},
@@ -689,7 +704,8 @@ const DATA = {
     homes: [
       {en:'house', es:'casa'}, {en:'flat / apartment', es:'apartamento'},
       {en:'penthouse', es:'ático'}, {en:'townhouse', es:'casa adosada'},
-      {en:'villa', es:'villa'}, {en:'bungalow', es:'bungalow'}
+      {en:'villa', es:'villa'}, {en:'bungalow', es:'bungalow'},
+      {en:'flat / apartment', es:'piso'}
     ],
     timeOfDay: [
       {en:'in the morning', es:'por la mañana'},
@@ -788,9 +804,9 @@ const DATA = {
   // Each scene has a room (for "name the room" mode) and a list of objects with
   // normalized coordinates x,y in 0..1 (x = left→right, y = top→bottom) marking
   // where each object sits in the image (for "name the object" mode).
-  // Images live in assets/<key>.png. No text/labels are baked into the images.
+  // Images live in assets/The House/<key>.jpg. No text/labels are baked into the images.
   houseScenes: [
-    { key:'dormitorio', img:'assets/dormitorio.jpg', room:{es:'dormitorio', en:'bedroom'},
+    { key:'dormitorio', img:'assets/The House/dormitorio.jpg', room:{es:'dormitorio', en:'bedroom'},
       objects:[
         {es:'cama', en:'bed', x:0.3677, y:0.5438, r:0.211},
         {es:'mesilla de noche', en:'bedside table', x:0.1563, y:0.6212, r:0.0446},
@@ -807,7 +823,7 @@ const DATA = {
         {es:'planta', en:'plant', x:0.4048, y:0.2872, r:0.029},
         {es:'cómoda', en:'chest of drawers', x:0.6012, y:0.4315, r:0.0539}
       ]},
-    { key:'bano', img:'assets/bano.jpg', room:{es:'cuarto de baño', en:'bathroom'},
+    { key:'bano', img:'assets/The House/bano.jpg', room:{es:'cuarto de baño', en:'bathroom'},
       objects:[
         {es:'bañera', en:'bathtub', x:0.2655, y:0.6934, r:0.1658},
         {es:'ducha', en:'shower', x:0.6293, y:0.346, r:0.196},
@@ -822,7 +838,7 @@ const DATA = {
         {es:'ventana', en:'window', x:0.3928, y:0.2485, r:0.1082},
         {es:'planta', en:'plant', x:0.3417, y:0.4823, r:0.0342}
       ]},
-    { key:'salon', img:'assets/salon.jpg', room:{es:'salón', en:'living room'},
+    { key:'salon', img:'assets/The House/salon.jpg', room:{es:'salón', en:'living room'},
       objects:[
         {es:'sofá', en:'sofa', x:0.2615, y:0.497, r:0.1578},
         {es:'sillón', en:'armchair', x:0.6433, y:0.6961, r:0.117},
@@ -839,7 +855,7 @@ const DATA = {
         {es:'planta', en:'plant', x:0.3968, y:0.2712, r:0.0295},
         {es:'cojines', en:'cushions', x:0.2976, y:0.4395, r:0.0323}
       ]},
-    { key:'cocina', img:'assets/cocina.jpg', room:{es:'cocina', en:'kitchen'},
+    { key:'cocina', img:'assets/The House/cocina.jpg', room:{es:'cocina', en:'kitchen'},
       objects:[
         {es:'horno', en:'oven / hob', x:0.6553, y:0.3834, r:0.0229},
         {es:'frigorífico', en:'fridge', x:0.7776, y:0.4943, r:0.037},
@@ -854,7 +870,7 @@ const DATA = {
         {es:'microondas', en:'microwave', x:0.7275, y:0.3206, r:0.0363},
         {es:'taburete', en:'stool', x:0.519, y:0.7201, r:0.0366}
       ]},
-    { key:'comedor', img:'assets/comedor.jpg', room:{es:'comedor', en:'dining room'},
+    { key:'comedor', img:'assets/The House/comedor.jpg', room:{es:'comedor', en:'dining room'},
       objects:[
         {es:'mesa', en:'table', x:0.5681, y:0.6079, r:0.0284},
         {es:'silla', en:'chair', x:0.6643, y:0.7027, r:0.0314},
@@ -868,7 +884,7 @@ const DATA = {
         {es:'centro de mesa', en:'centrepiece', x:0.5251, y:0.5504, r:0.0502},
         {es:'mantel', en:'tablecloth', x:0.6303, y:0.5838, r:0.0261}
       ]},
-    { key:'aseo', img:'assets/aseo.jpg', room:{es:'aseo', en:'toilet (small)'},
+    { key:'aseo', img:'assets/The House/aseo.jpg', room:{es:'aseo', en:'toilet (small)'},
       objects:[
         {es:'water', en:'toilet', x:0.3637, y:0.5865, r:0.0876},
         {es:'lavabo', en:'sink', x:0.6403, y:0.509, r:0.0786},
@@ -878,7 +894,7 @@ const DATA = {
         {es:'ventana', en:'window', x:0.3717, y:0.2351, r:0.1185},
         {es:'planta', en:'plant', x:0.4088, y:0.3153, r:0.05}
       ]},
-    { key:'garaje', img:'assets/garaje.jpg', room:{es:'garaje', en:'garage'},
+    { key:'garaje', img:'assets/The House/garaje.jpg', room:{es:'garaje', en:'garage'},
       objects:[
         {es:'coche', en:'car', x:0.4088, y:0.5491, r:0.1274},
         {es:'moto', en:'motorbike', x:0.6483, y:0.5865, r:0.0703},
@@ -890,7 +906,7 @@ const DATA = {
         {es:'estantería', en:'shelving', x:0.6523, y:0.2953, r:0.1288},
         {es:'armario', en:'cupboard', x:0.1743, y:0.4195, r:0.0595}
       ]},
-    { key:'pasillo', img:'assets/pasillo.jpg', room:{es:'pasillo', en:'hallway'},
+    { key:'pasillo', img:'assets/The House/pasillo.jpg', room:{es:'pasillo', en:'hallway'},
       objects:[
         {es:'puerta', en:'door', x:0.2776, y:0.6573, r:0.0384},
         {es:'alfombra', en:'rug', x:0.4739, y:0.7468, r:0.0322},
@@ -900,7 +916,7 @@ const DATA = {
         {es:'consola', en:'console table', x:0.4669, y:0.5264, r:0.0688},
         {es:'planta', en:'plant', x:0.6403, y:0.2017, r:0.0274}
       ]},
-    { key:'estudio', img:'assets/estudio.jpg', room:{es:'estudio', en:'office / study'},
+    { key:'estudio', img:'assets/The House/estudio.jpg', room:{es:'estudio', en:'office / study'},
       objects:[
         {es:'escritorio', en:'desk', x:0.2806, y:0.5558, r:0.0978},
         {es:'silla de oficina', en:'office chair', x:0.3497, y:0.5745, r:0.0551},
@@ -915,6 +931,99 @@ const DATA = {
         {es:'alfombra', en:'rug', x:0.5301, y:0.6987, r:0.0465},
         {es:'planta', en:'plant', x:0.4259, y:0.338, r:0.0362},
         {es:'impresora', en:'printer', x:0.1503, y:0.517, r:0.0489}
+      ]}
+  ],
+
+  cityScenes: [
+    { key:'shops', img:'assets/The City/shops.jpg', name:'Shopping street',
+      items:[
+        {es:'banco', en:'bank', kind:'place', x:0.1503, y:0.6266, r:0.0583},
+        {es:'farmacia', en:'pharmacy', kind:'place', x:0.3337, y:0.5972, r:0.063},
+        {es:'panadería', en:'bakery', kind:'place', x:0.4599, y:0.5731, r:0.0613},
+        {es:'carnicería', en:'butcher\'s', kind:'place', x:0.5762, y:0.5344, r:0.0501},
+        {es:'tienda de ropa', en:'clothes shop', kind:'place', x:0.6854, y:0.497, r:0.0598},
+        {es:'zapatería', en:'shoe shop', kind:'place', x:0.7816, y:0.4729, r:0.0495},
+        {es:'librería', en:'bookshop', kind:'place', x:0.8888, y:0.4382, r:0.0501},
+        {es:'semáforo', en:'traffic light', kind:'object', x:0.2034, y:0.7281, r:0.0335},
+        {es:'farola', en:'streetlight', kind:'object', x:0.478, y:0.6587, r:0.0231},
+        {es:'banco', en:'bench', kind:'object', x:0.6132, y:0.6774, r:0.0384},
+        {es:'papelera', en:'litter bin', kind:'object', x:0.7214, y:0.656, r:0.0313},
+        {es:'buzón', en:'postbox', kind:'object', x:0.9018, y:0.5758, r:0.0395},
+        {es:'paso de cebra', en:'zebra crossing', kind:'object', x:0.3747, y:0.8163, r:0.0794},
+        {es:'árbol', en:'tree', kind:'object', x:0.5421, y:0.6466, r:0.0378}
+      ]},
+    { key:'foodandretail', img:'assets/The City/foodandretail.jpg', name:'Food & retail',
+      items:[
+        {es:'restaurante', en:'restaurant', kind:'place', x:0.1733, y:0.6025, r:0.0985},
+        {es:'cafetería', en:'café', kind:'place', x:0.3267, y:0.5972, r:0.0445},
+        {es:'bar', en:'bar', kind:'place', x:0.4379, y:0.5625, r:0.046},
+        {es:'supermercado', en:'supermarket', kind:'place', x:0.5591, y:0.4916, r:0.0509},
+        {es:'mercado', en:'market', kind:'place', x:0.6192, y:0.6466, r:0.094},
+        {es:'tienda de electrónicos', en:'electronics shop', kind:'place', x:0.9058, y:0.513, r:0.0542},
+        {es:'centro comercial', en:'shopping centre', kind:'place', x:0.6824, y:0.3554, r:0.0639},
+        {es:'farola', en:'streetlight', kind:'object', x:0.4429, y:0.6733, r:0.0245},
+        {es:'banco', en:'bench', kind:'object', x:0.2866, y:0.7602, r:0.0317},
+        {es:'papelera', en:'litter bin', kind:'object', x:0.4098, y:0.7415, r:0.0263},
+        {es:'semáforo', en:'traffic light', kind:'object', x:0.1573, y:0.7201, r:0.038},
+        {es:'paso de cebra', en:'zebra crossing', kind:'object', x:0.3587, y:0.8537, r:0.0417},
+        {es:'árbol', en:'tree', kind:'object', x:0.3758, y:0.6907, r:0.0366}
+      ]},
+    { key:'civicsquare', img:'assets/The City/civicsquare.jpg', name:'Civic square',
+      items:[
+        {es:'ayuntamiento', en:'town hall', kind:'place', x:0.508, y:0.342, r:0.0686},
+        {es:'iglesia', en:'church', kind:'place', x:0.2575, y:0.3968, r:0.0567},
+        {es:'museo', en:'museum', kind:'place', x:0.7134, y:0.35, r:0.0546},
+        {es:'biblioteca', en:'library', kind:'place', x:0.1593, y:0.5598, r:0.0445},
+        {es:'correos', en:'post office', kind:'place', x:0.8146, y:0.5718, r:0.0708},
+        {es:'escuela', en:'school', kind:'place', x:0.2796, y:0.7201, r:0.0674},
+        {es:'fuente', en:'fountain', kind:'object', x:0.481, y:0.5651, r:0.053},
+        {es:'estatua', en:'statue', kind:'object', x:0.5551, y:0.5251, r:0.0358},
+        {es:'bandera', en:'flag', kind:'object', x:0.5581, y:0.0548, r:0.042},
+        {es:'banco', en:'bench', kind:'object', x:0.6403, y:0.5117, r:0.0295},
+        {es:'farola', en:'streetlight', kind:'object', x:0.6964, y:0.6039, r:0.0266},
+        {es:'árbol', en:'tree', kind:'object', x:0.5, y:0.7255, r:0.037}
+      ]},
+    { key:'emergencyandhealth', img:'assets/The City/emergencyandhealth.jpg', name:'Emergency & health',
+      items:[
+        {es:'hospital', en:'hospital', kind:'place', x:0.3878, y:0.338, r:0.0873},
+        {es:'clínica', en:'clinic', kind:'place', x:0.6533, y:0.3447, r:0.0553},
+        {es:'comisaría', en:'police station', kind:'place', x:0.2645, y:0.676, r:0.0546},
+        {es:'estación de bomberos', en:'fire station', kind:'place', x:0.7635, y:0.5625, r:0.0563},
+        {es:'ambulancia', en:'ambulance', kind:'object', x:0.4609, y:0.4729, r:0.0386},
+        {es:'coche de bomberos', en:'fire engine', kind:'object', x:0.7575, y:0.6199, r:0.0346},
+        {es:'semáforo', en:'traffic light', kind:'object', x:0.4739, y:0.6533, r:0.0295},
+        {es:'paso de cebra', en:'zebra crossing', kind:'object', x:0.483, y:0.5598, r:0.0387},
+        {es:'señal', en:'road sign', kind:'object', x:0.6974, y:0.7308, r:0.05},
+        {es:'farola', en:'streetlight', kind:'object', x:0.5451, y:0.7682, r:0.0267}
+      ]},
+    { key:'park', img:'assets/The City/park.jpg', name:'Park',
+      items:[
+        {es:'fuente', en:'fountain', kind:'object', x:0.522, y:0.4997, r:0.0787},
+        {es:'estatua', en:'statue', kind:'object', x:0.5531, y:0.2031, r:0.0505},
+        {es:'estanque', en:'pond', kind:'object', x:0.2595, y:0.4422, r:0.0387},
+        {es:'banco', en:'bench', kind:'object', x:0.7555, y:0.5638, r:0.0306},
+        {es:'farola', en:'streetlight', kind:'object', x:0.4599, y:0.5825, r:0.0253},
+        {es:'árbol', en:'tree', kind:'object', x:0.3317, y:0.2031, r:0.0484},
+        {es:'columpios', en:'swings', kind:'object', x:0.8056, y:0.4275, r:0.0326},
+        {es:'tobogán', en:'slide', kind:'object', x:0.7405, y:0.4556, r:0.0307},
+        {es:'flores', en:'flowers', kind:'object', x:0.6222, y:0.4222, r:0.0313},
+        {es:'papelera', en:'litter bin', kind:'object', x:0.6633, y:0.3621, r:0.0285}
+      ]},
+    { key:'transport', img:'assets/The City/transport.jpg', name:'Transport',
+      items:[
+        {es:'estación de tren', en:'train station', kind:'place', x:0.4399, y:0.2351, r:0.0499},
+        {es:'parada de autobús', en:'bus stop', kind:'place', x:0.1563, y:0.5825, r:0.038},
+        {es:'gasolinera', en:'petrol station', kind:'place', x:0.8216, y:0.4756, r:0.0493},
+        {es:'autobús', en:'bus', kind:'object', x:0.2705, y:0.7027, r:0.0293},
+        {es:'tren', en:'train', kind:'object', x:0.506, y:0.346, r:0.025},
+        {es:'taxi', en:'taxi', kind:'object', x:0.4138, y:0.5985, r:0.0361},
+        {es:'coche', en:'car', kind:'object', x:0.6974, y:0.6132, r:0.0241},
+        {es:'moto', en:'motorbike', kind:'object', x:0.5461, y:0.6413, r:0.0245},
+        {es:'bicicleta', en:'bicycle', kind:'object', x:0.5341, y:0.7468, r:0.0302},
+        {es:'semáforo', en:'traffic light', kind:'object', x:0.4289, y:0.509, r:0.034},
+        {es:'andén', en:'platform', kind:'object', x:0.2856, y:0.4168, r:0.021},
+        {es:'señal', en:'road sign', kind:'object', x:0.6413, y:0.6506, r:0.0265},
+        {es:'farola', en:'streetlight', kind:'object', x:0.8287, y:0.5985, r:0.05}
       ]}
   ],
 
@@ -1585,7 +1694,7 @@ const DATA = {
 // STORAGE
 // =============================================================================
 const STORAGE_KEY = 'jason-spanish-app-v1';
-const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','timeNumbers','placeAction','dialogue','recognition','house'];
+const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','timeNumbers','placeAction','dialogue','recognition','house','city'];
 
 // Use null-prototype objects so keys like "constructor", "toString", etc.
 // don't collide with Object.prototype properties.
@@ -1677,7 +1786,10 @@ function accentTrapNote(word) {
 const SYNONYM_GROUPS = [
   ['frigorífico', 'nevera'],
   ['televisión', 'televisor'],
-  ['salón', 'sala de estar']
+  ['salón', 'sala de estar'],
+  ['apartamento', 'piso'],
+  ['correos', 'oficina de correos'],
+  ['comisaría', 'comisaría de policía']
 ];
 const WORD_ALTS = {};
 SYNONYM_GROUPS.forEach(g => g.forEach(w => { WORD_ALTS[w] = g.filter(x => x !== w); }));
@@ -2910,7 +3022,7 @@ Games.recognition = {
   TYPE_BY_TOPIC: {
     family: 'noun', pets: 'noun', food: 'noun', city: 'noun',
     jobs: 'noun', countries: 'place', days: 'noun', homes: 'noun',
-    rooms: 'noun', houseObjects: 'noun', garaje: 'noun', seasons: 'noun',
+    rooms: 'noun', houseObjects: 'noun', garaje: 'noun', cityObjects: 'noun', seasons: 'noun',
     weather: 'phrase', timeOfDay: 'phrase', greetings: 'phrase',
     adjectives: 'adjective', colours: 'adjective',
     emotions: 'adjective', flavours: 'adjective', nationalities: 'adjective'
@@ -3515,6 +3627,130 @@ Games.house = {
     document.getElementById('feedback-area').innerHTML =
       fb + `<div style="margin-top:0.5rem;"><button class="primary" id="house-next">Next</button></div>`;
     document.getElementById('house-next').addEventListener('click', () => { this.next(); this.refreshStatsBlock(); });
+    this.state.awaitingNext = true;
+  },
+
+  refreshStatsBlock() {
+    const block = document.getElementById('stats-block');
+    if (block) block.outerHTML = this.renderStatsBlock();
+  }
+};
+
+// --- 11. THE CITY (image-based) ---
+Games.city = {
+  name: 'The City',
+  description: 'Name places and city objects',
+  state: { mode: 'place', current: null, currentItem: null, awaitingNext: false },
+
+  init() {
+    this.state = { mode: 'place', current: null, currentItem: null, awaitingNext: false };
+    const main = document.getElementById('main');
+    main.innerHTML = `
+      <div class="controls house-mode-toggle">
+        <button class="filter-btn active" data-mode="place">Name the place</button>
+        <button class="filter-btn" data-mode="object">Name the object</button>
+      </div>
+      <div class="prompt-ask" id="city-ask">Name the highlighted place</div>
+      <div class="house-stage" id="city-stage">
+        <img class="house-img" id="city-img" alt="" decoding="async">
+        <div class="house-marker hidden" id="city-marker"></div>
+        <div class="house-img-missing hidden" id="city-missing"></div>
+      </div>
+      <div id="city-input-area"></div>
+      <div id="feedback-area"></div>
+      ${this.renderStatsBlock()}
+    `;
+    main.querySelectorAll('[data-mode]').forEach(b =>
+      b.addEventListener('click', () => this.setMode(b.dataset.mode)));
+    const img = document.getElementById('city-img');
+    img.addEventListener('error', () => {
+      document.getElementById('city-missing').classList.remove('hidden');
+      document.getElementById('city-missing').textContent =
+        'Image not found: ' + (this.state.current ? this.state.current.img : '') + '. Add it to the assets folder.';
+    });
+    img.addEventListener('load', () => { document.getElementById('city-missing').classList.add('hidden'); });
+    this.next();
+  },
+
+  renderStatsBlock() {
+    const s = gameAggregateStats('city');
+    const acc = s.total > 0 ? Math.round((s.correct/s.total)*100) + '%' : '—';
+    return `<div class="game-stats" id="stats-block">
+      <div class="stats-row"><span>Attempts</span><strong>${s.total}</strong></div>
+      <div class="stats-row"><span>Accuracy</span><strong>${acc}</strong></div>
+    </div>`;
+  },
+
+  setMode(m) {
+    this.state.mode = m;
+    document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+    document.getElementById('city-ask').textContent =
+      m === 'place' ? 'Name the highlighted place' : 'Name the highlighted object';
+    this.next();
+  },
+
+  // Flatten all scenes' items of the current kind, each carrying its scene.
+  pool(kind) {
+    return DATA.cityScenes.flatMap(sc => sc.items.filter(it => it.kind === kind).map(it => ({ ...it, scene: sc })));
+  },
+
+  next() {
+    const items = this.pool(this.state.mode);
+    const item = pickWeighted(items, it => weightForKey('city', 'city:' + it.scene.key + ':' + it.kind + ':' + it.es));
+    this.state.currentItem = item;
+    this.state.current = item.scene;
+
+    const img = document.getElementById('city-img');
+    const marker = document.getElementById('city-marker');
+    document.getElementById('feedback-area').innerHTML = '';
+    document.getElementById('city-missing').classList.add('hidden');
+    this.state.awaitingNext = false;
+    if (img.getAttribute('src') !== item.scene.img) img.src = item.scene.img;
+
+    marker.classList.remove('hidden');
+    marker.style.left = (item.x * 100) + '%';
+    marker.style.top = (item.y * 100) + '%';
+    marker.style.width = ((item.r || 0.06) * 2 * 100) + '%';
+    marker.classList.toggle('label-below', item.y < 0.2);
+    marker.innerHTML = '<span class="house-marker-label">' + item.en + '</span>';
+    this.renderInput();
+  },
+
+  renderInput() {
+    const area = document.getElementById('city-input-area');
+    area.innerHTML = `
+      <div class="input-row">
+        <input type="text" id="city-input" placeholder="Type in Spanish" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="primary" id="city-submit">Check</button>
+      </div>`;
+    const input = document.getElementById('city-input');
+    input.focus();
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); this.check(input.value.trim()); }});
+    document.getElementById('city-submit').addEventListener('click', () => this.check(input.value.trim()));
+  },
+
+  check(answer) {
+    if (this.state.awaitingNext) { this.next(); this.refreshStatsBlock(); return; }
+    if (!answer) return;
+    const item = this.state.currentItem;
+    const expected = item.es, en = item.en;
+    const key = 'city:' + item.scene.key + ':' + item.kind + ':' + item.es;
+    let fb;
+    const m = answerMatch(answer, expected);
+    if (m !== 'no') {
+      recordResult('city', key, true);
+      if (m === 'exact') {
+        fb = `<div class="feedback correct">✓ Correct: <strong>${expected}</strong> (${en})</div>`;
+      } else {
+        fb = `<div class="feedback almost">Nearly. The accent matters: <strong>${expected}</strong> (${en}).${accentTrapNote(expected)}</div>`;
+      }
+    } else {
+      recordResult('city', key, false);
+      fb = `<div class="feedback incorrect">✗ Answer: <strong>${expected}</strong> (${en}). You wrote "<em>${answer}</em>".</div>`;
+    }
+    document.getElementById('feedback-area').innerHTML =
+      fb + `<div style="margin-top:0.5rem;"><button class="primary" id="city-next">Next</button></div>`;
+    document.getElementById('city-next').addEventListener('click', () => { this.next(); this.refreshStatsBlock(); });
     this.state.awaitingNext = true;
   },
 

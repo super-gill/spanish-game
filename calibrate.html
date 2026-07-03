@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>La Casa — new-item calibrator</title>
+<title>The City — hotspot calibrator</title>
 <style>
   :root { --ink:#1a2332; --cream:#fbf8f3; --terra:#c2624a; --line:#d5cfc1; }
   * { box-sizing: border-box; }
@@ -14,6 +14,7 @@
   .ask { font-size:1.1rem; padding:10px 18px; background:#fff; border-bottom:1px solid var(--line); }
   .ask b { color:var(--terra); }
   .ask .es { color:#7a7466; font-style:italic; }
+  .ask .kind { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; background:#eee; color:#555; padding:1px 7px; border-radius:999px; margin-left:6px; }
   .wrap { display:flex; gap:16px; padding:16px; align-items:flex-start; flex-wrap:wrap; }
   .stage { position:relative; flex:1 1 640px; max-width:1000px; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff; cursor:crosshair; }
   .stage img { width:100%; display:block; user-select:none; -webkit-user-drag:none; }
@@ -23,14 +24,14 @@
   button { font:inherit; padding:8px 14px; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:pointer; }
   button.primary { background:var(--ink); color:var(--cream); border-color:var(--ink); }
   button.warn { color:#7a2d2d; }
-  textarea { width:100%; height:280px; font-family:ui-monospace,monospace; font-size:12px; border:1px solid var(--line); border-radius:6px; padding:8px; }
+  textarea { width:100%; height:260px; font-family:ui-monospace,monospace; font-size:12px; border:1px solid var(--line); border-radius:6px; padding:8px; }
   .hint { font-size:0.85rem; color:#5a5446; margin:8px 0; line-height:1.4; }
-  .placed { font-size:0.8rem; color:#5a5446; margin-top:8px; max-height:160px; overflow:auto; }
+  .placed { font-size:0.8rem; color:#5a5446; margin-top:8px; max-height:150px; overflow:auto; }
 </style>
 </head>
 <body>
 <header>
-  <h1>La Casa — new-item calibrator</h1>
+  <h1>The City — hotspot calibrator</h1>
   <span class="prog" id="prog"></span>
 </header>
 <div class="ask" id="ask"></div>
@@ -41,19 +42,18 @@
   </div>
   <div class="side">
     <div class="btns">
-      <button id="prevroom">&larr; Prev room</button>
-      <button id="nextroom" class="primary">Next room &rarr;</button>
+      <button id="prevroom">&larr; Prev scene</button>
+      <button id="nextroom" class="primary">Next scene &rarr;</button>
     </div>
     <div class="btns">
       <button id="skip" class="warn">Skip item</button>
       <button id="undo">Undo last</button>
-      <button id="restart">Restart room</button>
+      <button id="restart">Restart scene</button>
     </div>
     <div class="hint">
-      Each item = <b>two clicks</b>: click its <b>centre</b>, then click its <b>edge</b> to size the ring.
-      It then moves to the next item.<br>
-      <b>Skip item</b> = not in this picture. <b>Undo last</b> = fix the previous one.
-      <b>Next room</b> jumps ahead when a room is done.
+      Each item = <b>two clicks</b>: click its <b>centre</b>, then click its <b>edge</b> to size the ring.<br>
+      <b>PLACE</b> = a building, <b>OBJECT</b> = a street thing. <b>Skip</b> anything not in the picture.
+      <b>Next scene</b> jumps ahead when a scene is done.
     </div>
     <div class="btns">
       <button id="copy" class="primary">Copy JSON</button>
@@ -65,106 +65,116 @@
 </div>
 
 <script>
-// Only the NEW objects being added, grouped by their room. Images are the
-// optimised ones already in the game.
-const ROOMS = [
-  { key:'comedor', es:'comedor', en:'dining room', file:'assets/comedor.jpg',
-    objects:[['centro de mesa','centrepiece'],['mantel','tablecloth']] },
-  { key:'cocina', es:'cocina', en:'kitchen', file:'assets/cocina.jpg',
-    objects:[['microondas','microwave'],['taburete','stool']] },
-  { key:'salon', es:'salón', en:'living room', file:'assets/salon.jpg',
-    objects:[['cojines','cushions']] },
-  { key:'dormitorio', es:'dormitorio', en:'bedroom', file:'assets/dormitorio.jpg',
-    objects:[['cómoda','chest of drawers']] },
-  { key:'estudio', es:'estudio', en:'office / study', file:'assets/estudio.jpg',
-    objects:[['impresora','printer']] },
+// Each scene: places (buildings) then street objects. item = [es, en, kind].
+const SCENES = [
+  { key:'shops', name:'Shopping street', file:'assets/The City/shops.jpg', items:[
+    ['banco','bank','place'],['farmacia','pharmacy','place'],['panadería','bakery','place'],
+    ["carnicería","butcher's",'place'],['tienda de ropa','clothes shop','place'],['zapatería','shoe shop','place'],
+    ['librería','bookshop','place'],
+    ['semáforo','traffic light','object'],['farola','streetlight','object'],['banco','bench','object'],
+    ['papelera','litter bin','object'],['buzón','postbox','object'],['paso de cebra','zebra crossing','object'],['árbol','tree','object'] ]},
+  { key:'foodandretail', name:'Food & retail', file:'assets/The City/foodandretail.jpg', items:[
+    ['restaurante','restaurant','place'],['cafetería','café','place'],['bar','bar','place'],
+    ['supermercado','supermarket','place'],['mercado','market','place'],['tienda de electrónicos','electronics shop','place'],
+    ['centro comercial','shopping centre','place'],
+    ['farola','streetlight','object'],['banco','bench','object'],['papelera','litter bin','object'],
+    ['semáforo','traffic light','object'],['paso de cebra','zebra crossing','object'],['árbol','tree','object'] ]},
+  { key:'civicsquare', name:'Civic square', file:'assets/The City/civicsquare.jpg', items:[
+    ['ayuntamiento','town hall','place'],['iglesia','church','place'],['museo','museum','place'],
+    ['biblioteca','library','place'],['correos','post office','place'],['escuela','school','place'],
+    ['fuente','fountain','object'],['estatua','statue','object'],['bandera','flag','object'],
+    ['banco','bench','object'],['farola','streetlight','object'],['árbol','tree','object'] ]},
+  { key:'emergencyandhealth', name:'Emergency & health', file:'assets/The City/emergencyandhealth.jpg', items:[
+    ['hospital','hospital','place'],['clínica','clinic','place'],['comisaría','police station','place'],
+    ['estación de bomberos','fire station','place'],
+    ['ambulancia','ambulance','object'],['coche de bomberos','fire engine','object'],['coche','car','object'],
+    ['semáforo','traffic light','object'],['paso de cebra','zebra crossing','object'],['señal','road sign','object'],['farola','streetlight','object'] ]},
+  { key:'park', name:'Park', file:'assets/The City/park.jpg', items:[
+    ['parque','park','place'],
+    ['fuente','fountain','object'],['estatua','statue','object'],['estanque','pond','object'],
+    ['banco','bench','object'],['farola','streetlight','object'],['árbol','tree','object'],
+    ['columpios','swings','object'],['tobogán','slide','object'],['flores','flowers','object'],['papelera','litter bin','object'] ]},
+  { key:'transport', name:'Transport', file:'assets/The City/transport.jpg', items:[
+    ['estación de tren','train station','place'],['parada de autobús','bus stop','place'],['gasolinera','petrol station','place'],
+    ['autobús','bus','object'],['tren','train','object'],['taxi','taxi','object'],['coche','car','object'],
+    ['moto','motorbike','object'],['bicicleta','bicycle','object'],['semáforo','traffic light','object'],
+    ['andén','platform','object'],['señal','road sign','object'],['farola','streetlight','object'] ]},
 ];
 
 let ri = 0, oi = 0, phase = 'center', center = null;
-const results = ROOMS.map(r => ({ key:r.key, room:{es:r.es,en:r.en}, objects:[] }));
+const results = SCENES.map(s => ({ key:s.key, name:s.name, items:[] }));
 
 const img = document.getElementById('img');
 const ovl = document.getElementById('ovl');
 const stage = document.getElementById('stage');
 
-function curRoom(){ return ROOMS[ri]; }
-function curObj(){ return curRoom().objects[oi]; }
-
-function loadRoom(){ img.src = curRoom().file; oi = 0; phase='center'; center=null; render(); }
+function cur(){ return SCENES[ri]; }
+function curItem(){ return cur().items[oi]; }
+function loadScene(){ img.src = cur().file; oi=0; phase='center'; center=null; render(); }
 
 function render(){
-  const room = curRoom();
+  const sc = cur();
   document.getElementById('prog').textContent =
-    `Room ${ri+1}/${ROOMS.length} — ${room.en}    •    item ${Math.min(oi+1,room.objects.length)}/${room.objects.length}`;
-  if (oi >= room.objects.length){
-    document.getElementById('ask').innerHTML = `<b>${room.en} done.</b> Loading next room…`;
-    drawOverlay();
-    setTimeout(()=>{ if (ri < ROOMS.length-1){ ri++; loadRoom(); } else finish(); }, 350);
-    return;
+    `Scene ${ri+1}/${SCENES.length} — ${sc.name}    •    item ${Math.min(oi+1,sc.items.length)}/${sc.items.length}`;
+  if (oi >= sc.items.length){
+    document.getElementById('ask').innerHTML = `<b>${sc.name} done.</b> Loading next scene…`;
+    drawOverlay(); setTimeout(()=>{ if (ri<SCENES.length-1){ ri++; loadScene(); } else finish(); }, 350); return;
   }
-  const [es,en] = curObj();
+  const [es,en,kind] = curItem();
   const verb = phase==='center' ? '① Click the CENTRE of' : '② Now click the EDGE of';
-  document.getElementById('ask').innerHTML = `${verb}: <b>${en}</b> <span class="es">(${es})</span>`;
+  document.getElementById('ask').innerHTML = `${verb}: <b>${en}</b> <span class="es">(${es})</span><span class="kind">${kind}</span>`;
   drawOverlay(); updateOut();
 }
 
 function drawOverlay(previewR){
-  const placed = results[ri].objects.map(o =>
-    `<circle cx="${o.x*100}" cy="${o.y*100}" r="${o.r*100}" fill="none" stroke="#3a7a3a" stroke-width="0.5"/>`+
-    `<circle cx="${o.x*100}" cy="${o.y*100}" r="0.6" fill="#3a7a3a"/>`).join('');
-  let cur = '';
-  if (center){
-    cur += `<circle cx="${center.x*100}" cy="${center.y*100}" r="0.8" fill="#c2624a"/>`;
-    if (previewR!=null) cur += `<circle cx="${center.x*100}" cy="${center.y*100}" r="${previewR*100}" fill="none" stroke="#c2624a" stroke-width="0.6"/>`;
-  }
-  ovl.innerHTML = placed + cur;
+  const placed = results[ri].items.map(o =>
+    `<circle cx="${o.x*100}" cy="${o.y*100}" r="${o.r*100}" fill="none" stroke="${o.kind==='place'?'#2d5a8a':'#3a7a3a'}" stroke-width="0.5"/>`+
+    `<circle cx="${o.x*100}" cy="${o.y*100}" r="0.6" fill="${o.kind==='place'?'#2d5a8a':'#3a7a3a'}"/>`).join('');
+  let cur2='';
+  if (center){ cur2 += `<circle cx="${center.x*100}" cy="${center.y*100}" r="0.8" fill="#c2624a"/>`;
+    if (previewR!=null) cur2 += `<circle cx="${center.x*100}" cy="${center.y*100}" r="${previewR*100}" fill="none" stroke="#c2624a" stroke-width="0.6"/>`; }
+  ovl.innerHTML = placed + cur2;
   document.getElementById('placed').innerHTML =
-    results[ri].objects.map(o=>`<div>✓ ${o.en} <span style="color:#999">(${o.es})</span></div>`).join('');
+    results[ri].items.map(o=>`<div>✓ ${o.en} <span style="color:#999">(${o.es}, ${o.kind})</span></div>`).join('');
 }
 
-function relCoords(e){ const r = img.getBoundingClientRect(); return { x:(e.clientX-r.left)/r.width, y:(e.clientY-r.top)/r.height }; }
-
-stage.addEventListener('mousemove', e=>{
-  if (phase==='radius' && center){ const p = relCoords(e); drawOverlay(Math.hypot(p.x-center.x, p.y-center.y)); }
-});
+function rel(e){ const r=img.getBoundingClientRect(); return { x:(e.clientX-r.left)/r.width, y:(e.clientY-r.top)/r.height }; }
+stage.addEventListener('mousemove', e=>{ if (phase==='radius'&&center){ const p=rel(e); drawOverlay(Math.hypot(p.x-center.x,p.y-center.y)); }});
 stage.addEventListener('click', e=>{
-  if (oi >= curRoom().objects.length) return;
-  const p = relCoords(e);
-  if (phase==='center'){ center = p; phase='radius'; render(); }
-  else {
-    let r = Math.hypot(p.x-center.x, p.y-center.y);
-    if (r < 0.02) r = 0.05;
-    const [es,en] = curObj();
-    results[ri].objects.push({ es, en, x:+center.x.toFixed(4), y:+center.y.toFixed(4), r:+r.toFixed(4) });
-    center=null; phase='center'; oi++; render();
-  }
+  if (oi>=cur().items.length) return;
+  const p=rel(e);
+  if (phase==='center'){ center=p; phase='radius'; render(); }
+  else { let r=Math.hypot(p.x-center.x,p.y-center.y); if(r<0.02)r=0.05;
+    const [es,en,kind]=curItem();
+    results[ri].items.push({ es,en,kind, x:+center.x.toFixed(4), y:+center.y.toFixed(4), r:+r.toFixed(4) });
+    center=null; phase='center'; oi++; render(); }
 });
-document.getElementById('skip').addEventListener('click', ()=>{ if (oi < curRoom().objects.length){ center=null; phase='center'; oi++; render(); } });
+document.getElementById('skip').addEventListener('click', ()=>{ if(oi<cur().items.length){ center=null; phase='center'; oi++; render(); }});
 document.getElementById('undo').addEventListener('click', ()=>{
   if (phase==='radius'){ center=null; phase='center'; render(); return; }
-  if (results[ri].objects.length){ const last = results[ri].objects.pop();
-    const idx = curRoom().objects.findIndex(o=>o[0]===last.es); oi = idx>=0?idx:Math.max(0,oi-1); phase='center'; center=null; render(); }
+  if (results[ri].items.length){ const last=results[ri].items.pop();
+    const idx=cur().items.findIndex(it=>it[0]===last.es&&it[1]===last.en); oi=idx>=0?idx:Math.max(0,oi-1); phase='center'; center=null; render(); }
 });
-document.getElementById('restart').addEventListener('click', ()=>{ results[ri].objects=[]; oi=0; phase='center'; center=null; render(); });
-function nextRoom(){ if (ri < ROOMS.length-1){ ri++; loadRoom(); } else finish(); }
-function prevRoom(){ if (ri > 0){ ri--; loadRoom(); } }
-document.getElementById('nextroom').addEventListener('click', nextRoom);
-document.getElementById('prevroom').addEventListener('click', prevRoom);
+document.getElementById('restart').addEventListener('click', ()=>{ results[ri].items=[]; oi=0; phase='center'; center=null; render(); });
+function nextScene(){ if(ri<SCENES.length-1){ ri++; loadScene(); } else finish(); }
+function prevScene(){ if(ri>0){ ri--; loadScene(); } }
+document.getElementById('nextroom').addEventListener('click', nextScene);
+document.getElementById('prevroom').addEventListener('click', prevScene);
 
-function activeResults(){ return results.filter(r=>r.objects.length); }
-function updateOut(){ document.getElementById('out').value = JSON.stringify(activeResults(), null, 1); }
-function finish(){ document.getElementById('ask').innerHTML = `<b>All done!</b> Copy or download the JSON and send it back.`;
-  document.getElementById('prog').textContent = 'Complete'; updateOut(); }
+function active(){ return results.filter(r=>r.items.length); }
+function updateOut(){ document.getElementById('out').value = JSON.stringify(active(), null, 1); }
+function finish(){ document.getElementById('ask').innerHTML=`<b>All done!</b> Copy or download the JSON and send it back.`;
+  document.getElementById('prog').textContent='Complete'; updateOut(); }
 document.getElementById('copy').addEventListener('click', ()=>{ updateOut();
   navigator.clipboard.writeText(document.getElementById('out').value)
     .then(()=>{ const b=document.getElementById('copy'); b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy JSON',1200); }); });
 document.getElementById('download').addEventListener('click', ()=>{ updateOut();
-  const blob = new Blob([document.getElementById('out').value], {type:'application/json'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'new-hotspots.json'; a.click(); });
+  const blob=new Blob([document.getElementById('out').value],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='city-hotspots.json'; a.click(); });
 img.addEventListener('load', render);
-img.addEventListener('error', ()=>{ document.getElementById('ask').innerHTML =
-  `<b style="color:#a33">Could not load ${curRoom().file}</b> — open this file from inside the spanish-game folder.`; });
-loadRoom();
+img.addEventListener('error', ()=>{ document.getElementById('ask').innerHTML=
+  `<b style="color:#a33">Could not load ${cur().file}</b> — open this file from inside the spanish-game folder.`; });
+loadScene();
 </script>
 </body>
 </html>
