@@ -526,6 +526,44 @@
     font-size: 0.9rem;
   }
 
+  /* Clock game */
+  .clock-face { text-align: center; margin: 0 auto 1.25rem; min-height: 210px; }
+  .clock-digital {
+    display: inline-block;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 3.6rem; font-weight: 700; letter-spacing: 0.08em;
+    color: #fbf8f3; background: #1a2332;
+    padding: 1.2rem 2rem; border-radius: 12px; margin-top: 1.5rem;
+    border: 1px solid #d5cfc1;
+  }
+
+  /* Errands (click-the-place) game */
+  .errand-wrap { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 1rem; }
+  .errand-side { flex: 0 0 175px; text-align: center; }
+  .errand-bubble {
+    position: relative; background: #fff; border: 1px solid #d5cfc1; border-radius: 14px;
+    padding: 12px 14px; margin-bottom: 14px; font-family: Georgia, serif;
+    font-size: 1.02rem; color: #1a2332; line-height: 1.35;
+  }
+  .errand-bubble:after {
+    content: ''; position: absolute; left: 34px; bottom: -9px; width: 15px; height: 15px;
+    background: #fff; border-right: 1px solid #d5cfc1; border-bottom: 1px solid #d5cfc1; transform: rotate(45deg);
+  }
+  .errand-char { width: 150px; height: auto; display: block; margin: 0 auto; }
+  .errand-name { font-weight: 600; font-size: 0.9rem; color: #5a5446; margin-top: 2px; }
+  .errand-scene {
+    position: relative; flex: 1 1 380px; max-width: 640px;
+    border: 1px solid #d5cfc1; border-radius: 10px; overflow: hidden; cursor: pointer;
+  }
+  .errand-scene img { width: 100%; display: block; }
+  .errand-scene.answered { cursor: default; }
+  .errand-ring {
+    position: absolute; transform: translate(-50%, -50%); aspect-ratio: 1 / 1;
+    border-radius: 50%; pointer-events: none; box-shadow: 0 0 0 3px rgba(255,255,255,0.55);
+  }
+  .errand-ring.correct { border: 4px solid #3a7a3a; }
+  .errand-ring.wrong { border: 4px solid #a33838; box-shadow: none; }
+
   @media (max-width: 480px) {
     .prompt-main { font-size: 1.65rem; }
     .input-row { flex-direction: column; }
@@ -1025,6 +1063,51 @@ const DATA = {
         {es:'señal', en:'road sign', kind:'object', x:0.6413, y:0.6506, r:0.0265},
         {es:'farola', en:'streetlight', kind:'object', x:0.8287, y:0.5985, r:0.05}
       ]}
+  ],
+
+  // Cast for the click-the-place game. Images blend into the page (site cream bg).
+  characters: [
+    { key:'lucia', name:'Lucía', img:'assets/Charecters/lucia.jpg' },
+    { key:'mateo', name:'Mateo', img:'assets/Charecters/mateo.jpg' },
+    { key:'javier', name:'Javier', img:'assets/Charecters/javier.jpg' },
+    { key:'bruno', name:'Bruno', img:'assets/Charecters/bruno.jpg' },
+    { key:'manuel', name:'Manuel', img:'assets/Charecters/manuel.jpg' },
+    { key:'carmen', name:'Carmen', img:'assets/Charecters/carmen.jpg' },
+    { key:'nadia', name:'Nadia', img:'assets/Charecters/nadia.jpg' },
+    { key:'tomas', name:'Tomás', img:'assets/Charecters/tomas.jpg' },
+    { key:'gabriel', name:'Gabriel', img:'assets/Charecters/gabriel.jpg' },
+    { key:'beatriz', name:'Beatriz', img:'assets/Charecters/beatriz.jpg' }
+  ],
+
+  // A person voices a need; the player clicks the right building in a city scene.
+  // `place` must match a place hotspot in cityScenes.
+  cityRequests: [
+    { place:'panadería', es:'Necesito comprar pan.', en:'I need to buy bread.' },
+    { place:'correos', es:'Tengo que enviar una carta.', en:'I have to send a letter.' },
+    { place:'farmacia', es:'Me duele la cabeza, necesito una aspirina.', en:'I have a headache, I need an aspirin.' },
+    { place:'banco', es:'Necesito sacar dinero.', en:'I need to take out money.' },
+    { place:'zapatería', es:'Quiero comprar unos zapatos nuevos.', en:'I want to buy new shoes.' },
+    { place:'carnicería', es:'Voy a comprar carne para la cena.', en:'I am buying meat for dinner.' },
+    { place:'cafetería', es:'Me apetece un café con leche.', en:'I fancy a coffee with milk.' },
+    { place:'estación de tren', es:'Tengo que coger el tren.', en:'I have to catch the train.' },
+    { place:'gasolinera', es:'Necesito poner gasolina al coche.', en:'I need to put petrol in the car.' },
+    { place:'museo', es:'Quiero ver la exposición de arte.', en:'I want to see the art exhibition.' },
+    { place:'librería', es:'Busco un libro para leer.', en:'I am looking for a book to read.' },
+    { place:'supermercado', es:'Tengo que hacer la compra de la semana.', en:'I have to do the weekly shop.' },
+    { place:'hospital', es:'Me he roto el brazo, necesito un médico.', en:'I have broken my arm, I need a doctor.' },
+    { place:'iglesia', es:'El domingo voy a misa.', en:'On Sunday I go to mass.' },
+    { place:'tienda de ropa', es:'Quiero comprar una camiseta.', en:'I want to buy a t-shirt.' },
+    { place:'restaurante', es:'Queremos cenar fuera esta noche.', en:'We want to eat out tonight.' },
+    { place:'tienda de electrónicos', es:'Se me ha roto el móvil.', en:'My phone has broken.' },
+    { place:'bar', es:'Vamos a tomar una caña.', en:'Let us go for a beer.' },
+    { place:'comisaría', es:'Me han robado la bici.', en:'My bike has been stolen.' },
+    { place:'escuela', es:'Llevo a los niños a clase.', en:'I take the children to class.' },
+    { place:'mercado', es:'¡Necesito unas piñas!', en:'I need some pineapples!' },
+    { place:'ayuntamiento', es:'Tengo que hacer unos trámites.', en:'I have some paperwork to sort out.' },
+    { place:'parada de autobús', es:'Estoy esperando el autobús.', en:'I am waiting for the bus.' },
+    { place:'biblioteca', es:'Quiero pedir prestados unos libros.', en:'I want to borrow some books.' },
+    { place:'clínica', es:'Necesito una cita con el médico de cabecera.', en:'I need a GP appointment.' },
+    { place:'centro comercial', es:'Quiero pasar la tarde de compras.', en:'I want to spend the afternoon shopping.' }
   ],
 
   // VERBS: conjugations for present tense (all) and past tense (regular only).
@@ -1694,7 +1777,7 @@ const DATA = {
 // STORAGE
 // =============================================================================
 const STORAGE_KEY = 'jason-spanish-app-v1';
-const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','timeNumbers','placeAction','dialogue','recognition','house','city'];
+const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','timeNumbers','placeAction','dialogue','recognition','house','city','clock','errands'];
 
 // Use null-prototype objects so keys like "constructor", "toString", etc.
 // don't collide with Object.prototype properties.
@@ -3791,6 +3874,233 @@ Games.city = {
       fb + `<div style="margin-top:0.5rem;"><button class="primary" id="city-next">Next</button></div>`;
     document.getElementById('city-next').addEventListener('click', () => { this.next(); this.refreshStatsBlock(); });
     this.state.awaitingNext = true;
+  },
+
+  refreshStatsBlock() {
+    const block = document.getElementById('stats-block');
+    if (block) block.outerHTML = this.renderStatsBlock();
+  }
+};
+
+// --- 12. THE CLOCK ---
+Games.clock = {
+  name: 'The Clock',
+  description: 'Tell the time in Spanish',
+  state: { format: 'analogue', current: null, itemKey: null, awaitingNext: false },
+
+  init() {
+    this.state = { format: 'analogue', current: null, itemKey: null, awaitingNext: false };
+    const main = document.getElementById('main');
+    main.innerHTML = `
+      <div class="controls">
+        <button class="filter-btn active" data-format="analogue">Analogue</button>
+        <button class="filter-btn" data-format="digital">Digital</button>
+      </div>
+      <div class="prompt-ask">What time is it? (in Spanish)</div>
+      <div id="clock-face" class="clock-face"></div>
+      <div id="clock-input-area"></div>
+      <div id="feedback-area"></div>
+      ${this.renderStatsBlock()}
+    `;
+    main.querySelectorAll('[data-format]').forEach(b => b.addEventListener('click', () => this.setFormat(b.dataset.format)));
+    this.next();
+  },
+
+  renderStatsBlock() {
+    const s = gameAggregateStats('clock');
+    const acc = s.total > 0 ? Math.round((s.correct/s.total)*100) + '%' : '—';
+    return `<div class="game-stats" id="stats-block">
+      <div class="stats-row"><span>Attempts</span><strong>${s.total}</strong></div>
+      <div class="stats-row"><span>Accuracy</span><strong>${acc}</strong></div>
+    </div>`;
+  },
+
+  setFormat(f) {
+    this.state.format = f;
+    document.querySelectorAll('[data-format]').forEach(b => b.classList.toggle('active', b.dataset.format === f));
+    this.renderFace();
+  },
+
+  clockSVG(display) {
+    const [h, m] = display.split(':').map(Number);
+    const ha = ((h % 12) + m/60) * 30, ma = m * 6;
+    const hand = (angle, len, w, color) => {
+      const t = angle * Math.PI/180;
+      return `<line x1="100" y1="100" x2="${(100+len*Math.sin(t)).toFixed(1)}" y2="${(100-len*Math.cos(t)).toFixed(1)}" stroke="${color}" stroke-width="${w}" stroke-linecap="round"/>`;
+    };
+    let ticks = '';
+    for (let i = 0; i < 12; i++) {
+      const t = i*30 * Math.PI/180;
+      ticks += `<line x1="${(100+84*Math.sin(t)).toFixed(1)}" y1="${(100-84*Math.cos(t)).toFixed(1)}" x2="${(100+93*Math.sin(t)).toFixed(1)}" y2="${(100-93*Math.cos(t)).toFixed(1)}" stroke="#1a2332" stroke-width="${i%3===0?3:1.5}"/>`;
+    }
+    return `<svg viewBox="0 0 200 200" width="210" height="210" role="img" aria-label="clock">
+      <circle cx="100" cy="100" r="96" fill="#fff" stroke="#1a2332" stroke-width="3"/>
+      ${ticks}
+      ${hand(ha, 50, 5, '#1a2332')}
+      ${hand(ma, 76, 3, '#c2624a')}
+      <circle cx="100" cy="100" r="4.5" fill="#1a2332"/>
+    </svg>`;
+  },
+
+  renderFace() {
+    const el = document.getElementById('clock-face');
+    if (!el || !this.state.current) return;
+    el.innerHTML = this.state.format === 'analogue'
+      ? this.clockSVG(this.state.current.display)
+      : `<div class="clock-digital">${this.state.current.display}</div>`;
+  },
+
+  next() {
+    const picked = pickSmart('clock', DATA.times, t => t.es);
+    this.state.current = picked.item;
+    this.state.itemKey = picked.key;
+    document.getElementById('feedback-area').innerHTML = '';
+    this.state.awaitingNext = false;
+    this.renderFace();
+    this.renderInput();
+  },
+
+  renderInput() {
+    const area = document.getElementById('clock-input-area');
+    area.innerHTML = `
+      <div class="input-row">
+        <input type="text" id="clock-input" placeholder="e.g. son las tres y cuarto" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="primary" id="clock-submit">Check</button>
+      </div>`;
+    const input = document.getElementById('clock-input');
+    input.focus();
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); this.check(input.value.trim()); }});
+    document.getElementById('clock-submit').addEventListener('click', () => this.check(input.value.trim()));
+  },
+
+  check(answer) {
+    if (this.state.awaitingNext) { this.next(); this.refreshStatsBlock(); return; }
+    if (!answer) return;
+    const expected = this.state.current.es;
+    let fb;
+    const m = answerMatch(answer, expected);
+    if (m === 'exact') {
+      recordResult('clock', this.state.itemKey, true);
+      fb = `<div class="feedback correct">✓ Correct: <strong>${expected}</strong></div>`;
+    } else if (m === 'accent') {
+      recordResult('clock', this.state.itemKey, true);
+      fb = `<div class="feedback almost">Nearly. Watch the accents: <strong>${expected}</strong>.${accentTrapNote(expected)}</div>`;
+    } else {
+      recordResult('clock', this.state.itemKey, false);
+      fb = `<div class="feedback incorrect">✗ Answer: <strong>${expected}</strong>. You wrote "<em>${answer}</em>".</div>`;
+    }
+    document.getElementById('feedback-area').innerHTML =
+      fb + `<div style="margin-top:0.5rem;"><button class="primary" id="clock-next">Next</button></div>`;
+    document.getElementById('clock-next').addEventListener('click', () => { this.next(); this.refreshStatsBlock(); });
+    this.state.awaitingNext = true;
+  },
+
+  refreshStatsBlock() {
+    const block = document.getElementById('stats-block');
+    if (block) block.outerHTML = this.renderStatsBlock();
+  }
+};
+
+// --- 13. ERRANDS (click the place) ---
+Games.errands = {
+  name: 'Errands',
+  description: 'Click where each person needs to go',
+  state: { current: null, character: null, scene: null, target: null, itemKey: null, answered: false },
+
+  init() {
+    this.state = { current: null, character: null, scene: null, target: null, itemKey: null, answered: false };
+    const main = document.getElementById('main');
+    main.innerHTML = `
+      <div class="prompt-ask">Where do they need to go? Click the place.</div>
+      <div id="errand-area"></div>
+      <div id="feedback-area"></div>
+      ${this.renderStatsBlock()}
+    `;
+    this.next();
+  },
+
+  renderStatsBlock() {
+    const s = gameAggregateStats('errands');
+    const acc = s.total > 0 ? Math.round((s.correct/s.total)*100) + '%' : '—';
+    return `<div class="game-stats" id="stats-block">
+      <div class="stats-row"><span>Attempts</span><strong>${s.total}</strong></div>
+      <div class="stats-row"><span>Accuracy</span><strong>${acc}</strong></div>
+    </div>`;
+  },
+
+  findPlace(placeEs) {
+    for (const sc of DATA.cityScenes) {
+      const hit = sc.items.find(it => it.kind === 'place' && it.es === placeEs);
+      if (hit) return { scene: sc, hotspot: hit };
+    }
+    return null;
+  },
+
+  next() {
+    const picked = pickSmart('errands', DATA.cityRequests, r => r.place);
+    const req = picked.item;
+    const loc = this.findPlace(req.place);
+    this.state.itemKey = picked.key;
+    this.state.current = req;
+    this.state.scene = loc.scene;
+    this.state.target = loc.hotspot;
+    this.state.character = DATA.characters[Math.floor(Math.random() * DATA.characters.length)];
+    this.state.answered = false;
+    document.getElementById('feedback-area').innerHTML = '';
+    this.render();
+  },
+
+  render() {
+    const c = this.state.character, req = this.state.current, sc = this.state.scene;
+    document.getElementById('errand-area').innerHTML = `
+      <div class="errand-wrap">
+        <div class="errand-side">
+          <div class="errand-bubble">${req.es}</div>
+          <img class="errand-char" src="${c.img}" alt="" decoding="async">
+          <div class="errand-name">${c.name}</div>
+        </div>
+        <div class="errand-scene" id="errand-scene">
+          <img id="errand-scene-img" src="${sc.img}" alt="city scene" decoding="async">
+        </div>
+      </div>`;
+    document.getElementById('errand-scene').addEventListener('click', e => this.onClick(e));
+  },
+
+  ring(cls, x, y, r) {
+    const d = document.createElement('div');
+    d.className = 'errand-ring ' + cls;
+    d.style.left = (x * 100) + '%';
+    d.style.top = (y * 100) + '%';
+    d.style.width = (r * 2 * 100) + '%';
+    document.getElementById('errand-scene').appendChild(d);
+  },
+
+  onClick(e) {
+    if (this.state.answered) return;
+    const img = document.getElementById('errand-scene-img');
+    const rect = img.getBoundingClientRect();
+    if (!rect.width) return;
+    const cxn = (e.clientX - rect.left) / rect.width;
+    const cyn = (e.clientY - rect.top) / rect.height;
+    const t = this.state.target;
+    // distance in width-normalized units (matches r = fraction of width)
+    const dx = cxn - t.x;
+    const dy = (cyn - t.y) * (rect.height / rect.width);
+    const correct = Math.hypot(dx, dy) <= t.r * 1.5;
+
+    this.state.answered = true;
+    document.getElementById('errand-scene').classList.add('answered');
+    this.ring('correct', t.x, t.y, t.r);
+    if (!correct) this.ring('wrong', cxn, cyn, 0.035);
+    recordResult('errands', this.state.itemKey, correct);
+
+    const req = this.state.current;
+    const fb = correct
+      ? `<div class="feedback correct">✓ ¡Correcto! The <strong>${req.place}</strong>. "${req.es}" (${req.en})</div>`
+      : `<div class="feedback incorrect">✗ Not there. They need the <strong>${req.place}</strong>. "${req.es}" (${req.en})</div>`;
+    document.getElementById('feedback-area').innerHTML =
+      fb + `<div style="margin-top:0.5rem;"><button class="primary" id="errand-next">Next</button></div>`;
+    document.getElementById('errand-next').addEventListener('click', () => { this.next(); this.refreshStatsBlock(); });
   },
 
   refreshStatsBlock() {
