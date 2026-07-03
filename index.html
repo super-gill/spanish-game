@@ -1830,6 +1830,36 @@ function pickWeighted(items, weightFn) {
   return items[items.length - 1];
 }
 
+// Per-game memory of recently shown concept keys, for the anti-repeat cooldown.
+const _recentByGame = Object.create(null);
+
+// Smarter selection used by every game:
+//  1. Deduplicate items by a concept key (keyFn) so a word that appears many times
+//     (e.g. "árbol" across scenes) counts once and isn't over-served.
+//  2. Skip concepts shown in the last few picks (cooldown) so nothing repeats
+//     back-to-back or too soon.
+//  3. Weight the remaining concepts by weakness (weightForKey) so things you get
+//     wrong come back sooner. Returns { item, key } — record results under `key`.
+function pickSmart(game, items, keyFn) {
+  if (!items || items.length === 0) return { item: null, key: null };
+  const groups = Object.create(null);
+  const order = [];
+  for (const it of items) {
+    const k = keyFn(it);
+    if (!groups[k]) { groups[k] = []; order.push(k); }
+    groups[k].push(it);
+  }
+  const recent = _recentByGame[game] || [];
+  let poolKeys = order.filter(k => recent.indexOf(k) === -1);
+  if (poolKeys.length === 0) poolKeys = order; // pool smaller than the cooldown window
+  const key = pickWeighted(poolKeys, k => weightForKey(game, k));
+  const insts = groups[key];
+  const item = insts[Math.floor(Math.random() * insts.length)];
+  const window = Math.min(Math.max(order.length - 1, 0), 6);
+  _recentByGame[game] = [key, ...recent.filter(k => k !== key)].slice(0, window);
+  return { item, key };
+}
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -2040,9 +2070,9 @@ Games.verbs = {
         if (!s || s.correct + s.incorrect < 2) return false;
         return s.correct / (s.correct + s.incorrect) < 0.7;
       });
-      if (weakCombos.length > 0) return pickWeighted(weakCombos, c => 1);
+      if (weakCombos.length > 0) return pickSmart('verbs', weakCombos, c => `${c.verb.inf}:${c.person}:${c.tense}`).item;
     }
-    return pickWeighted(combos, c => weightForKey('verbs', `${c.verb.inf}:${c.person}:${c.tense}`));
+    return pickSmart('verbs', combos, c => `${c.verb.inf}:${c.person}:${c.tense}`).item;
   },
 
   next() {
@@ -2148,7 +2178,7 @@ Games.vocab = {
 
   next() {
     const pool = this.pool();
-    const word = pickWeighted(pool, p => weightForKey('vocab', p.es));
+    const word = pickSmart('vocab', pool, p => p.es).item;
     this.state.current = word;
     document.getElementById('vocab-prompt').textContent = word.en;
     document.getElementById('vocab-meta').textContent = `topic: ${word.topic}`;
@@ -2249,7 +2279,7 @@ Games.articles = {
   },
 
   next() {
-    const noun = pickWeighted(DATA.articleNouns, n => weightForKey('articles', n.noun));
+    const noun = pickSmart('articles', DATA.articleNouns, n => n.noun).item;
     this.state.current = noun;
     document.getElementById('noun-display').textContent = noun.noun;
     document.getElementById('feedback-area').innerHTML = '';
@@ -2330,7 +2360,7 @@ Games.fillBlank = {
   },
 
   next() {
-    const sentence = pickWeighted(DATA.sentences, s => weightForKey('fillBlank', s.es));
+    const sentence = pickSmart('fillBlank', DATA.sentences, s => s.es).item;
     this.state.current = sentence;
     document.getElementById('fb-english').textContent = sentence.en;
     document.getElementById('fb-english').classList.add('hidden');
@@ -2409,7 +2439,7 @@ Games.sentenceBuilder = {
   },
 
   next() {
-    const sentence = pickWeighted(DATA.sentences, s => weightForKey('sentenceBuilder', s.es));
+    const sentence = pickSmart('sentenceBuilder', DATA.sentences, s => s.es).item;
     this.state.current = sentence;
     document.getElementById('sb-english').textContent = sentence.en;
     const words = sentence.es.replace(/([,.!?¿¡])/g, ' $1').split(/\s+/).filter(Boolean);
@@ -2538,7 +2568,7 @@ Games.timeNumbers = {
     else pool = [...DATA.numbers.map(n => ({key: 'n:'+n.num, prompt: n.num, expected: n.es, ask: 'Write this number in Spanish:'})),
                   ...DATA.times.map(t => ({key: 't:'+t.display, prompt: t.display, expected: t.es, ask: 'Write this time in Spanish:'}))];
 
-    const item = pickWeighted(pool, it => weightForKey('timeNumbers', it.key));
+    const item = pickSmart('timeNumbers', pool, it => it.key).item;
     this.state.current = item;
     document.getElementById('tn-ask').textContent = item.ask;
     document.getElementById('tn-display').textContent = item.prompt;
@@ -2615,7 +2645,7 @@ Games.placeAction = {
   },
 
   next() {
-    const entry = pickWeighted(DATA.placeActions, p => weightForKey('placeAction', p.verb));
+    const entry = pickSmart('placeAction', DATA.placeActions, p => p.verb).item;
     this.state.current = entry;
     this.state.selected = new Set();
     document.getElementById('pa-verb').textContent = entry.verb;
@@ -3558,21 +3588,29 @@ Games.house = {
   },
 
   next() {
-    const scenes = DATA.houseScenes;
-    const scene = pickWeighted(scenes, sc => weightForKey('house', 'room:' + sc.room.es));
-    this.state.current = scene;
-
     const img = document.getElementById('house-img');
     const marker = document.getElementById('house-marker');
     document.getElementById('feedback-area').innerHTML = '';
     document.getElementById('house-missing').classList.add('hidden');
     this.state.awaitingNext = false;
+
+    let scene, obj = null, key;
+    if (this.state.mode === 'object') {
+      // Flat pool of every object across rooms, deduped by word (via pickSmart) so
+      // common items (planta, ventana) aren't over-served, with anti-repeat cooldown.
+      const pool = DATA.houseScenes.flatMap(sc => sc.objects.map(o => ({ ...o, scene: sc })));
+      const picked = pickSmart('house', pool, o => 'obj:' + o.es);
+      obj = picked.item; scene = obj.scene; key = picked.key;
+    } else {
+      const picked = pickSmart('house', DATA.houseScenes, sc => 'room:' + sc.room.es);
+      scene = picked.item; key = picked.key;
+    }
+    this.state.current = scene;
+    this.state.currentObj = obj;
+    this.state.itemKey = key;
     if (img.getAttribute('src') !== scene.img) img.src = scene.img;
 
-    if (this.state.mode === 'object') {
-      // Pick an object within this scene, weighting weak spots.
-      const obj = pickWeighted(scene.objects, o => weightForKey('house', 'obj:' + scene.key + ':' + o.es));
-      this.state.currentObj = obj;
+    if (obj) {
       marker.classList.remove('hidden');
       marker.style.left = (obj.x * 100) + '%';
       marker.style.top = (obj.y * 100) + '%';
@@ -3581,7 +3619,6 @@ Games.house = {
       marker.classList.toggle('label-below', obj.y < 0.2);
       marker.innerHTML = '<span class="house-marker-label">' + obj.en + '</span>';
     } else {
-      this.state.currentObj = null;
       marker.classList.add('hidden');
       marker.innerHTML = '';
     }
@@ -3607,9 +3644,7 @@ Games.house = {
     const isRoom = this.state.mode === 'room';
     const expected = isRoom ? this.state.current.room.es : this.state.currentObj.es;
     const en = isRoom ? this.state.current.room.en : this.state.currentObj.en;
-    const key = isRoom
-      ? 'room:' + this.state.current.room.es
-      : 'obj:' + this.state.current.key + ':' + this.state.currentObj.es;
+    const key = this.state.itemKey;
 
     let fb;
     const m = answerMatch(answer, expected);
@@ -3696,8 +3731,12 @@ Games.city = {
 
   next() {
     const items = this.pool(this.state.mode);
-    const item = pickWeighted(items, it => weightForKey('city', 'city:' + it.scene.key + ':' + it.kind + ':' + it.es));
+    // Dedupe by word (via pickSmart) so common objects across scenes aren't
+    // over-served, with anti-repeat cooldown and weakness weighting.
+    const picked = pickSmart('city', items, it => it.kind + ':' + it.es);
+    const item = picked.item;
     this.state.currentItem = item;
+    this.state.itemKey = picked.key;
     this.state.current = item.scene;
 
     const img = document.getElementById('city-img');
@@ -3734,7 +3773,7 @@ Games.city = {
     if (!answer) return;
     const item = this.state.currentItem;
     const expected = item.es, en = item.en;
-    const key = 'city:' + item.scene.key + ':' + item.kind + ':' + item.es;
+    const key = this.state.itemKey;
     let fb;
     const m = answerMatch(answer, expected);
     if (m !== 'no') {
