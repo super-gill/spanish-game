@@ -22,7 +22,22 @@ Azure / similar), bundle them as small audio files, and just play them. No live
 synthesis, no backend needed for playback.
 
 Effort: a one-time batch generation over the vocab/sentence lists, plus a few MB
-of clips in `assets/`. Revisit as a batch job. Jason is researching voice options.
+of clips in `assets/`. Revisit as a batch job.
+
+**Voice recipe (ElevenLabs Voice Design) — confirmed working for Castilian:**
+Follow their template and state the dialect in Spanish in the first line. The word
+"accent" / "strong" causes seseo/Latin-American drift — avoid it. Push Guidance
+Scale high (~45-55%) and use a longer *Spanish* preview text. Working prompt for
+the character Lucía:
+```
+Native Spanish, español europeo de España (sin rasgos de español latinoamericano).
+Female, in her early 20s. Studio quality. Persona: chica joven y simpática, una
+vecina cercana y servicial. Emotion: warm, friendly, upbeat. Light, bright timbre
+with natural expressive intonation and a subtle smile in the voice, relaxed
+conversational pace, clean noise-free signal.
+```
+Diagnostic check: "th" on plaza/zapatería/cruzando/cerca, rolled r in barrio, ñ in
+acompaño. Per-character voices could be designed the same way (name/persona swapped).
 
 ### 2. The Clock — SHIPPED (game #12)
 Analogue clock face (drawn in SVG in-code, no image assets) plus a digital
@@ -32,9 +47,18 @@ synonym-tolerant, weak-spot aware. Already handles "menos" phrasing.
 Possible extensions: more times; a dedicated "y cuarto / y media / menos cuarto"
 phrasing focus; visualising numbers similarly.
 
-### 3. El / La with images — IN DISCUSSION
+### 3. El / La with images — SHIPPED
 Overhaul the dry El/La game: show a **picture of an object**, choose el or la.
 Pairing gender with an image is how it sticks.
+
+Shipped: the game keeps its full 98-noun `articleNouns` pool. `DATA.nounImages`
+maps 81 of those nouns to images (73 flat object icons in `assets/Objects/`, 8
+rooms reusing the house scenes). When a noun has an image it shows in a white card
+with a label; otherwise the word shows as before (layer, don't replace). A label
+toggle over the card switches English (default) / Español (italic, harder) / Off
+(expert). Labels are code-drawn so icons stay clean. Verified via jsdom (images
+render for image nouns, word fallback otherwise, toggle works, all 81 image nouns
+covered by the pool).
 
 Decisions made:
 - Use **dedicated generated images** (preferred over auto-cropping objects out of
@@ -43,10 +67,19 @@ Decisions made:
   labels), and the assistant slices each sheet into individual images. ~4 sheets
   ≈ 36 objects; the ~92 gendered nouns in `articleNouns` fit in a handful of sheets.
 
-Open decisions before generating:
-- **Style**: flat icons on white vs the realistic house/city render. (Flat reads
-  more clearly at small size for a quick el/la call.)
-- **Scope / order**: suggested to start with the house + city nouns (most used).
+Decisions locked:
+- **Style**: flat icons on white (clean at small size). Generate as **individual
+  images** (not sheets — slicing is fragile), drop in `assets/Objects/`.
+- **Layer, don't replace** (IMPORTANT): the El/La game keeps its full
+  `articleNouns` pool (98 nouns); show an image + label when the noun has one,
+  else fall back to the word (today's behaviour). Image-only would drop ~60
+  non-drawable nouns (día, universidad, familia...). Images enrich a subset; the
+  pool never shrinks. Add any icon-object missing from `articleNouns` with its gender.
+- **Label under the image**: English by default; toggle to Spanish (harder — tests
+  the irregulars like la mano, el mapa); optional no-label expert mode. Labels are
+  code-drawn text, so generated icons stay clean/unlabelled.
+- General principle: images are an **enhancement layer over text content, never a
+  replacement** (same as house/city words still living in vocab).
 
 ### 4. Place Match → "Click the place" with characters — SHIPPED (game #13 "Errands")
 A named character voices a need in a speech bubble ("¡Necesito unas piñas!") and
@@ -126,13 +159,39 @@ recognisable. No text, no labels, no numbers.
 
 ---
 
+## Adding content (stays easy)
+
+Everything is data-driven — games read `DATA.*` arrays and select via `pickSmart`,
+so new content is picked up automatically (balanced, anti-repeat, weak-spot aware).
+To add:
+- **A word**: append `{en, es}` to the right `DATA.vocab.<topic>` list. New topics
+  appear as buttons automatically; add a `TYPE_BY_TOPIC` entry for Recognition.
+- **A synonym**: one line in `SYNONYM_GROUPS`. An **accent trap**: one line in `ACCENT_TRAPS`.
+- **A sentence / verb / dialogue / number / time**: append to the matching `DATA` array.
+- **An errand request**: append `{place, es, en}` to `DATA.cityRequests` (place must
+  match a city hotspot). **A character**: add to `DATA.characters` and drop the image
+  in `assets/Charecters/` (flood its bg to `#fbf8f3`).
+- **An image-game hotspot** (house/city object or place): the only step that needs a
+  tool — run a calibrator to click the item for x/y/r, then add it to
+  `houseScenes` / `cityScenes`.
+
 ## Open questions / backlog
 
-- **Errands hit-area/ring** (game #13): the place hotspots were sized for the
-  City naming game, so the green ring and the click tolerance are smaller than
-  the buildings. Fix: for Errands, draw a larger ring and widen the click
-  hit-area (bump the `* 1.5` tolerance in `onClick`, and/or store a bigger radius
-  per place for this game). No re-calibration needed.
+- **Numbers game rework** — DONE: "Time & Numbers" is now **Numbers**. Time dropped
+  (The Clock covers it); numbers are **randomly generated in context** (plain 0-9999,
+  price in €, age, year), spelled by a tested `numberToSpanish()` and checked by a
+  tolerant `numAccept()` (un/uno, drops euros/céntimos) — no fixed list, infinite
+  practice. **Difficulty modes**: Easy (0-30, plain+age), Medium (0-100, +whole-euro
+  prices), Hard (full range 0-9999, prices with céntimos, years). Possible extension:
+  quantities with a noun (needs feminine agreement, una/veintiuna, doscientas) and a
+  visual counting mode.
+- **Errands hit-area / building boundaries** (game #13) — PINNED: a centre+radius
+  circle can't match a rectangular building, so widening the radius isn't enough.
+  Proper fix needs each building's actual footprint — a bounding box per place, or
+  a polygon for irregular shapes — which means a richer calibration pass (capture
+  box corners / draw a region, not a point). Then the click-hit test becomes
+  point-in-box/polygon and the highlight can outline the building. Bigger job;
+  revisit when we want to invest in it.
 - Idea 3: flat vs realistic style, and object scope/order.
 - Fold the anti-repeat picker into the **Recognition** flashcards; make the
   **Dialogue** game less strictly linear.

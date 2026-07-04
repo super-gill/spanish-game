@@ -144,6 +144,63 @@
     font-size: 1.4rem;
     color: #c2624a;
   }
+  .obj-card {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 220px;
+    height: 220px;
+    max-width: 70vw;
+    max-height: 70vw;
+    background: #ffffff;
+    border: 1px solid #e6e0d4;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 14px;
+    margin: 0 auto 0.5rem;
+  }
+  .obj-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .obj-label {
+    font-size: 1rem;
+    color: #7a7466;
+    margin-bottom: 0.25rem;
+  }
+  .obj-label-es {
+    font-family: Georgia, serif;
+    font-style: italic;
+    color: #1a2332;
+  }
+  .label-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .label-toggle-caption {
+    font-size: 0.8rem;
+    color: #7a7466;
+    margin-right: 0.15rem;
+  }
+  .chip {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid #d9d2c4;
+    border-radius: 999px;
+    background: #fbf8f3;
+    color: #1a2332;
+    cursor: pointer;
+  }
+  .chip.active {
+    background: #1a2332;
+    color: #fff;
+    border-color: #1a2332;
+  }
   .input-row {
     display: flex;
     gap: 0.5rem;
@@ -594,6 +651,90 @@
 // =============================================================================
 
 const DATA = {
+  // Noun -> image for the El/La game. Objects are flat icons; rooms reuse house scenes.
+  nounImages: {
+    "pájaro": { img: "assets/Objects/pajaro.png", en: "bird" },
+    "silla": { img: "assets/Objects/silla.png", en: "chair" },
+    "estantería": { img: "assets/Objects/estanteria.png", en: "bookshelf" },
+    "gato": { img: "assets/Objects/gato.png", en: "cat" },
+    "sofá": { img: "assets/Objects/sofa.png", en: "sofa" },
+    "perro": { img: "assets/Objects/perro.png", en: "dog" },
+    "cobaya": { img: "assets/Objects/cobaya.png", en: "guinea pig" },
+    "cama": { img: "assets/Objects/cama.png", en: "bed" },
+    "armario": { img: "assets/Objects/armario.png", en: "wardrobe" },
+    "ventana": { img: "assets/Objects/ventana.png", en: "window" },
+    "televisión": { img: "assets/Objects/television.png", en: "television" },
+    "mesa": { img: "assets/Objects/mesa.png", en: "table" },
+    "panadería": { img: "assets/Objects/panaderia.png", en: "bakery" },
+    "ducha": { img: "assets/Objects/ducha.png", en: "shower" },
+    "casa": { img: "assets/Objects/casa.png", en: "house" },
+    "parque": { img: "assets/Objects/parque.png", en: "park" },
+    "coche": { img: "assets/Objects/coche.png", en: "car" },
+    "mariposa": { img: "assets/Objects/mariposa.png", en: "butterfly" },
+    "playa": { img: "assets/Objects/playa.png", en: "beach" },
+    "pasta": { img: "assets/Objects/pasta.png", en: "pasta" },
+    "supermercado": { img: "assets/Objects/supermercado.png", en: "supermarket" },
+    "restaurante": { img: "assets/Objects/restaurante.png", en: "restaurant" },
+    "gimnasio": { img: "assets/Objects/gimnasio.png", en: "gym" },
+    "banco": { img: "assets/Objects/banco.png", en: "bank" },
+    "café": { img: "assets/Objects/cafe.png", en: "coffee" },
+    "iglesia": { img: "assets/Objects/iglesia.png", en: "church" },
+    "hospital": { img: "assets/Objects/hospital.png", en: "hospital" },
+    "tren": { img: "assets/Objects/tren.png", en: "train" },
+    "sol": { img: "assets/Objects/sol.png", en: "sun" },
+    "luna": { img: "assets/Objects/luna.png", en: "moon" },
+    "manzana": { img: "assets/Objects/manzana.png", en: "apple" },
+    "plátano": { img: "assets/Objects/platano.png", en: "banana" },
+    "leche": { img: "assets/Objects/leche.png", en: "milk" },
+    "agua": { img: "assets/Objects/agua.png", en: "water" },
+    "pez": { img: "assets/Objects/pez.png", en: "fish" },
+    "verdura": { img: "assets/Objects/verdura.png", en: "vegetables" },
+    "tortuga": { img: "assets/Objects/tortuga.png", en: "turtle" },
+    "tomate": { img: "assets/Objects/tomate.png", en: "tomato" },
+    "bocadillo": { img: "assets/Objects/bocadillo.png", en: "sandwich" },
+    "tostada": { img: "assets/Objects/tostada.png", en: "toast" },
+    "helado": { img: "assets/Objects/helado.png", en: "ice cream" },
+    "zumo": { img: "assets/Objects/zumo.png", en: "juice" },
+    "jamón": { img: "assets/Objects/jamon.png", en: "ham" },
+    "fruta": { img: "assets/Objects/fruta.png", en: "fruit" },
+    "postre": { img: "assets/Objects/postre.png", en: "dessert" },
+    "merienda": { img: "assets/Objects/merienda.png", en: "snack" },
+    "naranja": { img: "assets/Objects/naranja.png", en: "orange" },
+    "zanahoria": { img: "assets/Objects/zanahoria.png", en: "carrot" },
+    "hotel": { img: "assets/Objects/hotel.png", en: "hotel" },
+    "tienda": { img: "assets/Objects/tienda.png", en: "shop" },
+    "zapatería": { img: "assets/Objects/zapateria.png", en: "shoe shop" },
+    "bar": { img: "assets/Objects/bar.png", en: "bar" },
+    "montaña": { img: "assets/Objects/montana.png", en: "mountain" },
+    "teatro": { img: "assets/Objects/teatro.png", en: "theatre" },
+    "bosque": { img: "assets/Objects/bosque.png", en: "forest" },
+    "biblioteca": { img: "assets/Objects/biblioteca.png", en: "library" },
+    "apartamento": { img: "assets/Objects/apartamento.png", en: "apartment" },
+    "hija": { img: "assets/Objects/hija.png", en: "daughter" },
+    "ático": { img: "assets/Objects/atico.png", en: "penthouse" },
+    "nube": { img: "assets/Objects/nube.png", en: "cloud" },
+    "nieve": { img: "assets/Objects/nieve.png", en: "snow" },
+    "tormenta": { img: "assets/Objects/tormenta.png", en: "storm" },
+    "lluvia": { img: "assets/Objects/lluvia.png", en: "rain" },
+    "hijo": { img: "assets/Objects/hijo.png", en: "son" },
+    "planta": { img: "assets/Objects/planta.png", en: "plant" },
+    "reloj": { img: "assets/Objects/reloj.png", en: "clock" },
+    "sillón": { img: "assets/Objects/sillon.png", en: "armchair" },
+    "espejo": { img: "assets/Objects/espejo.png", en: "mirror" },
+    "escritorio": { img: "assets/Objects/escritorio.png", en: "desk" },
+    "lámpara": { img: "assets/Objects/lampara.png", en: "lamp" },
+    "ordenador": { img: "assets/Objects/ordenador.png", en: "computer" },
+    "horno": { img: "assets/Objects/horno.png", en: "oven" },
+    "toalla": { img: "assets/Objects/toalla.png", en: "towel" },
+    "cocina": { img: "assets/The House/cocina.jpg", en: "kitchen" },
+    "salón": { img: "assets/The House/salon.jpg", en: "living room" },
+    "comedor": { img: "assets/The House/comedor.jpg", en: "dining room" },
+    "dormitorio": { img: "assets/The House/dormitorio.jpg", en: "bedroom" },
+    "pasillo": { img: "assets/The House/pasillo.jpg", en: "hallway" },
+    "estudio": { img: "assets/The House/estudio.jpg", en: "office" },
+    "aseo": { img: "assets/The House/aseo.jpg", en: "toilet" },
+    "garaje": { img: "assets/The House/garaje.jpg", en: "garage" }
+  },
   // VOCAB: grouped by topic. Add entries as you learn them.
   vocab: {
     family: [
@@ -1107,7 +1248,42 @@ const DATA = {
     { place:'parada de autobús', es:'Estoy esperando el autobús.', en:'I am waiting for the bus.' },
     { place:'biblioteca', es:'Quiero pedir prestados unos libros.', en:'I want to borrow some books.' },
     { place:'clínica', es:'Necesito una cita con el médico de cabecera.', en:'I need a GP appointment.' },
-    { place:'centro comercial', es:'Quiero pasar la tarde de compras.', en:'I want to spend the afternoon shopping.' }
+    { place:'centro comercial', es:'Quiero pasar la tarde de compras.', en:'I want to spend the afternoon shopping.' },
+    { place:'correos', es:'Necesito comprar sellos.', en:'I need to buy stamps.' },
+    { place:'correos', es:'Tengo que recoger un paquete.', en:'I have to pick up a parcel.' },
+    { place:'farmacia', es:'Necesito comprar tiritas.', en:'I need to buy plasters.' },
+    { place:'farmacia', es:'¿Tenéis algo para la tos?', en:'Do you have something for a cough?' },
+    { place:'banco', es:'Quiero cambiar dinero.', en:'I want to change money.' },
+    { place:'banco', es:'Necesito hablar con el director del banco.', en:'I need to speak to the bank manager.' },
+    { place:'panadería', es:'Quiero comprar un pastel de cumpleaños.', en:'I want to buy a birthday cake.' },
+    { place:'carnicería', es:'Quiero un kilo de pollo.', en:'I want a kilo of chicken.' },
+    { place:'zapatería', es:'Se me han roto las botas.', en:'My boots have broken.' },
+    { place:'cafetería', es:'Quiero desayunar una tostada.', en:'I want toast for breakfast.' },
+    { place:'cafetería', es:'Me apetece un trozo de tarta.', en:'I fancy a slice of cake.' },
+    { place:'estación de tren', es:'Tengo que comprar un billete de tren.', en:'I need to buy a train ticket.' },
+    { place:'gasolinera', es:'El depósito está vacío.', en:'The tank is empty.' },
+    { place:'museo', es:'Hay una exposición nueva que quiero ver.', en:'There is a new exhibition I want to see.' },
+    { place:'librería', es:'Necesito un diccionario.', en:'I need a dictionary.' },
+    { place:'supermercado', es:'Se ha acabado la leche.', en:'We have run out of milk.' },
+    { place:'supermercado', es:'Tengo que comprar fruta y verdura.', en:'I have to buy fruit and veg.' },
+    { place:'hospital', es:'Han tenido un accidente.', en:'They have had an accident.' },
+    { place:'hospital', es:'Me encuentro muy mal.', en:'I feel very unwell.' },
+    { place:'iglesia', es:'Hay una boda este sábado.', en:'There is a wedding this Saturday.' },
+    { place:'tienda de ropa', es:'Necesito un abrigo para el invierno.', en:'I need a coat for winter.' },
+    { place:'restaurante', es:'Quiero reservar una mesa para dos.', en:'I want to book a table for two.' },
+    { place:'restaurante', es:'Tengo mucha hambre, quiero comer bien.', en:'I am very hungry, I want a good meal.' },
+    { place:'tienda de electrónicos', es:'Quiero comprar unos auriculares.', en:'I want to buy headphones.' },
+    { place:'bar', es:'Vamos a tomar unas tapas.', en:'Let us have some tapas.' },
+    { place:'comisaría', es:'He perdido mi cartera.', en:'I have lost my wallet.' },
+    { place:'escuela', es:'Tengo que recoger a mi hija.', en:'I have to pick up my daughter.' },
+    { place:'mercado', es:'Quiero comprar pescado fresco.', en:'I want to buy fresh fish.' },
+    { place:'ayuntamiento', es:'Tengo que pagar una multa.', en:'I have to pay a fine.' },
+    { place:'parada de autobús', es:'¿Cuándo llega el autobús?', en:'When does the bus arrive?' },
+    { place:'biblioteca', es:'Tengo que devolver estos libros.', en:'I have to return these books.' },
+    { place:'clínica', es:'Necesito que me pongan una vacuna.', en:'I need to get a vaccine.' },
+    { place:'centro comercial', es:'Busco un regalo de cumpleaños.', en:'I am looking for a birthday present.' },
+    { place:'estación de bomberos', es:'¡Hay un incendio en mi calle!', en:'There is a fire on my street!' },
+    { place:'estación de bomberos', es:'Los bomberos tienen que venir rápido.', en:'The firefighters need to come quickly.' }
   ],
 
   // VERBS: conjugations for present tense (all) and past tense (regular only).
@@ -1777,7 +1953,7 @@ const DATA = {
 // STORAGE
 // =============================================================================
 const STORAGE_KEY = 'jason-spanish-app-v1';
-const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','timeNumbers','placeAction','dialogue','recognition','house','city','clock','errands'];
+const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','numbers','placeAction','dialogue','recognition','house','city','clock','errands'];
 
 // Use null-prototype objects so keys like "constructor", "toString", etc.
 // don't collide with Object.prototype properties.
@@ -1941,6 +2117,33 @@ function pickSmart(game, items, keyFn) {
   const window = Math.min(Math.max(order.length - 1, 0), 6);
   _recentByGame[game] = [key, ...recent.filter(k => k !== key)].slice(0, window);
   return { item, key };
+}
+
+// Spell an integer in (Spain) Spanish. Correct for 0..999999 including cien vs
+// ciento, quinientos/setecientos/novecientos, and apocope before mil (veintiún mil).
+function numberToSpanish(n) {
+  n = Math.floor(n);
+  if (n === 0) return 'cero';
+  const ones = ['','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce','trece','catorce','quince','dieciséis','diecisiete','dieciocho','diecinueve','veinte','veintiuno','veintidós','veintitrés','veinticuatro','veinticinco','veintiséis','veintisiete','veintiocho','veintinueve'];
+  const tens = ['','','','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'];
+  const hundreds = ['','ciento','doscientos','trescientos','cuatrocientos','quinientos','seiscientos','setecientos','ochocientos','novecientos'];
+  const u100 = x => { if (x < 30) return ones[x]; const t = Math.floor(x/10), o = x%10; return o === 0 ? tens[t] : tens[t] + ' y ' + ones[o]; };
+  const u1000 = x => { if (x < 100) return u100(x); if (x === 100) return 'cien'; const h = Math.floor(x/100), r = x%100; return hundreds[h] + (r ? ' ' + u100(r) : ''); };
+  const apoc = s => s.replace(/veintiuno$/, 'veintiún').replace(/(^|\s)uno$/, '$1un');
+  if (n < 1000) return u1000(n);
+  const th = Math.floor(n/1000), r = n%1000;
+  const milPart = th === 1 ? 'mil' : apoc(u1000(th)) + ' mil';
+  return milPart + (r ? ' ' + u1000(r) : '');
+}
+
+// Tolerant number-answer check: ignores accents, treats un/uno as equal, and
+// drops euros/céntimos so "doce euros con cincuenta" == "doce con cincuenta".
+function numAccept(answer, expected) {
+  const canon = s => normalize(s)
+    .replace(/\beuros?\b/g, ' ').replace(/\bcentimos?\b/g, ' ')
+    .replace(/\bveintiun\b/g, 'veintiuno').replace(/\bun\b/g, 'uno')
+    .replace(/\s+/g, ' ').trim();
+  return canon(answer) === canon(expected);
 }
 
 function shuffle(arr) {
@@ -2329,11 +2532,17 @@ Games.vocab = {
 Games.articles = {
   name: 'El or La',
   description: 'Spanish noun gender training',
-  state: { awaitingNext: false, current: null },
+  state: { awaitingNext: false, current: null, labelMode: 'en' },
 
   init() {
-    this.state = { awaitingNext: false, current: null };
+    this.state = { awaitingNext: false, current: null, labelMode: this.state.labelMode || 'en' };
     document.getElementById('main').innerHTML = `
+      <div class="label-toggle" id="art-label-toggle">
+        <span class="label-toggle-caption">Label</span>
+        <button class="chip" data-label="en">English</button>
+        <button class="chip" data-label="es">Español</button>
+        <button class="chip" data-label="off">Off</button>
+      </div>
       <div class="prompt-card">
         <div class="prompt-ask">What's the article?</div>
         <div class="prompt-main" id="noun-display">—</div>
@@ -2346,7 +2555,32 @@ Games.articles = {
       ${this.renderStatsBlock()}
     `;
     document.querySelectorAll('[data-choice]').forEach(b => b.addEventListener('click', () => this.check(b.dataset.choice, b)));
+    document.querySelectorAll('[data-label]').forEach(b => b.addEventListener('click', () => this.setLabelMode(b.dataset.label)));
+    this.syncLabelToggle();
     this.next();
+  },
+
+  syncLabelToggle() {
+    document.querySelectorAll('[data-label]').forEach(b => b.classList.toggle('active', b.dataset.label === this.state.labelMode));
+  },
+
+  setLabelMode(mode) {
+    this.state.labelMode = mode;
+    this.syncLabelToggle();
+    if (this.state.current) this.renderStage(this.state.current);
+  },
+
+  renderStage(noun) {
+    const info = DATA.nounImages[noun.noun];
+    const display = document.getElementById('noun-display');
+    if (info) {
+      let label = '';
+      if (this.state.labelMode === 'en') label = `<div class="obj-label">${info.en}</div>`;
+      else if (this.state.labelMode === 'es') label = `<div class="obj-label obj-label-es">${noun.noun}</div>`;
+      display.innerHTML = `<div class="obj-card"><img class="obj-img" src="${info.img}" alt=""></div>${label}`;
+    } else {
+      display.textContent = noun.noun;
+    }
   },
 
   renderStatsBlock() {
@@ -2364,7 +2598,7 @@ Games.articles = {
   next() {
     const noun = pickSmart('articles', DATA.articleNouns, n => n.noun).item;
     this.state.current = noun;
-    document.getElementById('noun-display').textContent = noun.noun;
+    this.renderStage(noun);
     document.getElementById('feedback-area').innerHTML = '';
     document.querySelectorAll('[data-choice]').forEach(b => { b.disabled = false; b.classList.remove('correct','incorrect'); });
     this.state.awaitingNext = false;
@@ -2599,38 +2833,44 @@ Games.sentenceBuilder = {
 };
 
 // --- 6. TIME & NUMBERS ---
-Games.timeNumbers = {
-  name: 'Time & Numbers',
-  description: 'Write times and numbers in Spanish',
-  state: { mode: 'numbers', awaitingNext: false, current: null },
+Games.numbers = {
+  name: 'Numbers',
+  description: 'Say numbers, prices, ages and years in Spanish',
+  state: { current: null, itemKey: null, awaitingNext: false, diff: 'medium' },
 
   init() {
-    this.state = { mode: 'numbers', awaitingNext: false, current: null };
+    this.state = { current: null, itemKey: null, awaitingNext: false, diff: 'medium' };
     document.getElementById('main').innerHTML = `
       <div class="controls">
-        <button class="filter-btn active" data-tn="numbers">Numbers</button>
-        <button class="filter-btn" data-tn="times">Times</button>
-        <button class="filter-btn" data-tn="both">Mix</button>
+        <button class="filter-btn" data-diff="easy">Easy</button>
+        <button class="filter-btn active" data-diff="medium">Medium</button>
+        <button class="filter-btn" data-diff="hard">Hard</button>
       </div>
       <div class="prompt-card">
-        <div class="prompt-ask" id="tn-ask">Write this number in Spanish:</div>
-        <div class="prompt-main" id="tn-display">—</div>
+        <div class="prompt-ask" id="num-ask">—</div>
+        <div class="prompt-main" id="num-display">—</div>
       </div>
       <div class="input-row">
-        <input type="text" id="tn-input" placeholder="Type in Spanish" autocomplete="off" autocapitalize="off" spellcheck="false">
-        <button class="primary" id="tn-submit">Check</button>
+        <input type="text" id="num-input" placeholder="Type it in Spanish words" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="primary" id="num-submit">Check</button>
       </div>
       <div id="feedback-area"></div>
       ${this.renderStatsBlock()}
     `;
-    document.querySelectorAll('[data-tn]').forEach(b => b.addEventListener('click', () => this.setMode(b.dataset.tn)));
-    document.getElementById('tn-submit').addEventListener('click', () => this.check());
-    document.getElementById('tn-input').addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); this.check(); }});
+    document.querySelectorAll('[data-diff]').forEach(b => b.addEventListener('click', () => this.setDiff(b.dataset.diff)));
+    document.getElementById('num-submit').addEventListener('click', () => this.check());
+    document.getElementById('num-input').addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); this.check(); }});
+    this.next();
+  },
+
+  setDiff(d) {
+    this.state.diff = d;
+    document.querySelectorAll('[data-diff]').forEach(b => b.classList.toggle('active', b.dataset.diff === d));
     this.next();
   },
 
   renderStatsBlock() {
-    const s = gameAggregateStats('timeNumbers');
+    const s = gameAggregateStats('numbers');
     const acc = s.total > 0 ? Math.round((s.correct/s.total)*100) + '%' : '—';
     return `<div class="game-stats" id="stats-block">
       <div class="stats-row"><span>Attempts</span><strong>${s.total}</strong></div>
@@ -2638,49 +2878,66 @@ Games.timeNumbers = {
     </div>`;
   },
 
-  setMode(m) {
-    this.state.mode = m;
-    document.querySelectorAll('[data-tn]').forEach(b => b.classList.toggle('active', b.dataset.tn === m));
-    this.next();
+  // apocopate a number in a masculine-noun context: uno->un, veintiuno->veintiún.
+  apoc(s) { return s.replace(/veintiuno$/, 'veintiún').replace(/(^|\s)uno$/, '$1un'); },
+
+  // Randomly generate a number in one of several real-world contexts.
+  generate() {
+    const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+    const d = this.state.diff;
+    const contexts = d === 'easy' ? ['plain', 'age']
+                   : d === 'medium' ? ['plain', 'age', 'price']
+                   : ['plain', 'price', 'age', 'year'];
+    const c = pickSmart('numbers', contexts.map(x => ({ x })), o => o.x).item.x;
+    let display, ask, expected;
+    if (c === 'plain') {
+      const n = d === 'easy' ? rnd(0, 30) : d === 'medium' ? rnd(0, 100) : rnd(0, 9999);
+      display = String(n); ask = 'Say this number in Spanish:'; expected = numberToSpanish(n);
+    } else if (c === 'price') {
+      const e = d === 'medium' ? rnd(1, 100) : rnd(1, 999);
+      const cents = d === 'hard' && Math.random() < 0.6 ? rnd(1, 99) : 0;
+      display = cents ? `${e},${String(cents).padStart(2, '0')} €` : `${e} €`;
+      ask = '¿Cuánto cuesta? Say the price:';
+      const eWord = e === 1 ? 'un euro' : this.apoc(numberToSpanish(e)) + ' euros';
+      expected = eWord + (cents ? ' con ' + numberToSpanish(cents) : '');
+    } else if (c === 'age') {
+      const a = d === 'easy' ? rnd(1, 30) : rnd(1, 99);
+      display = `${a} años`; ask = '¿Cuántos años tiene? Say the number:'; expected = this.apoc(numberToSpanish(a));
+    } else {
+      const y = rnd(1000, 2099);
+      display = `año ${y}`; ask = 'Say the year:'; expected = numberToSpanish(y);
+    }
+    return { key: c, display, ask, expected };
   },
 
   next() {
-    let pool;
-    if (this.state.mode === 'numbers') pool = DATA.numbers.map(n => ({key: 'n:'+n.num, prompt: n.num, expected: n.es, ask: 'Write this number in Spanish:'}));
-    else if (this.state.mode === 'times') pool = DATA.times.map(t => ({key: 't:'+t.display, prompt: t.display, expected: t.es, ask: 'Write this time in Spanish:'}));
-    else pool = [...DATA.numbers.map(n => ({key: 'n:'+n.num, prompt: n.num, expected: n.es, ask: 'Write this number in Spanish:'})),
-                  ...DATA.times.map(t => ({key: 't:'+t.display, prompt: t.display, expected: t.es, ask: 'Write this time in Spanish:'}))];
-
-    const item = pickSmart('timeNumbers', pool, it => it.key).item;
+    const item = this.generate();
     this.state.current = item;
-    document.getElementById('tn-ask').textContent = item.ask;
-    document.getElementById('tn-display').textContent = item.prompt;
-    const input = document.getElementById('tn-input');
+    this.state.itemKey = item.key;
+    document.getElementById('num-ask').textContent = item.ask;
+    document.getElementById('num-display').textContent = item.display;
+    const input = document.getElementById('num-input');
     input.value = ''; input.focus();
     document.getElementById('feedback-area').innerHTML = '';
-    document.getElementById('tn-submit').textContent = 'Check';
+    document.getElementById('num-submit').textContent = 'Check';
     this.state.awaitingNext = false;
   },
 
   check() {
     if (this.state.awaitingNext) { this.next(); this.refreshStatsBlock(); return; }
-    const input = document.getElementById('tn-input').value.trim();
+    const input = document.getElementById('num-input').value.trim();
     if (!input) return;
     const c = this.state.current;
-    const nu = normalize(input), ne = normalize(c.expected);
     let fb;
-    if (input.toLowerCase() === c.expected.toLowerCase()) {
-      recordResult('timeNumbers', c.key, true);
+    if (numAccept(input, c.expected)) {
+      recordResult('numbers', this.state.itemKey, true);
       fb = `<div class="feedback correct">✓ <strong>${c.expected}</strong></div>`;
-    } else if (nu === ne) {
-      recordResult('timeNumbers', c.key, true);
-      fb = `<div class="feedback almost">Nearly. The accent matters: <strong>${c.expected}</strong>.${accentTrapNote(c.expected)}</div>`;
     } else {
-      recordResult('timeNumbers', c.key, false);
+      recordResult('numbers', this.state.itemKey, false);
       fb = `<div class="feedback incorrect">✗ Answer: <strong>${c.expected}</strong>. You wrote "<em>${input}</em>".</div>`;
     }
     document.getElementById('feedback-area').innerHTML = fb;
-    document.getElementById('tn-submit').textContent = 'Next';
+    document.getElementById('num-submit').textContent = 'Next';
     this.state.awaitingNext = true;
   },
 
