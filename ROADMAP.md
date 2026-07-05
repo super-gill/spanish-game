@@ -144,6 +144,15 @@ recognisable. No text, no labels, no numbers.
 
 ## Recently shipped (context)
 
+- **Sentence Builder rework** — difficulty by length (Easy ≤4 words, Medium 5-7,
+  Hard 8+; ~12 longer sentences added for Hard). The word bank now includes trap
+  tiles (1/2/3 by difficulty) pulled from other sentences and filtered out of the
+  answer. Placed tiles can be **dragged to reorder** (pointer events, works on
+  mouse + touch) and tapped to remove. The checker accepts variants instead of one
+  exact order: exact, the same sentence with an optional leading subject pronoun
+  dropped ("Ella prepara la cena" or "prepara la cena"), plus any per-sentence
+  `alt` strings. Punctuation/case no longer need to be matched. Images pinned for a
+  later pass (sentences are abstract and numerous).
 - **Verb Drill rework** — difficulty modes (Easy/Medium/Hard) control how much is
   given away: Easy shows meaning + stem/category, Medium shows meaning only, Hard
   hides both. The tense is now a bold pill (was buried in the grey meta line). On a

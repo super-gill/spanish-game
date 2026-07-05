@@ -493,7 +493,11 @@
     color: #1a2332;
   }
   .tile:hover { border-color: #1a2332; }
-  .tile.placed { background: #1a2332; color: #fbf8f3; }
+  .tile.placed { background: #1a2332; color: #fbf8f3; cursor: grab; touch-action: none; }
+  .tile.placed.dragging { opacity: 0.5; cursor: grabbing; }
+  .tile.placed.wrong { background: #b23b2e; color: #fff; box-shadow: 0 0 0 2px rgba(178,59,46,0.35); }
+  .tile.placed.misplaced { background: #d9a520; color: #1a2332; box-shadow: 0 0 0 2px rgba(217,165,32,0.4); }
+  .sb-hint { font-size: 0.8rem; color: #7a7466; margin: 0.25rem 0 0.75rem; }
 
   /* Place-action checkbox grid */
   .check-grid {
@@ -1778,7 +1782,7 @@ const DATA = {
     {en:'Last week we visited Madrid.', es:'La semana pasada visitamos Madrid.', focus:'visitamos'},
     {en:'My brother eats a sandwich.', es:'Mi hermano come un bocadillo.', focus:'come'},
     {en:'You (tú) drink tea.', es:'Bebes té.', focus:'Bebes'},
-    {en:'I have forty years.', es:'Tengo cuarenta años.', focus:'Tengo'},
+    {en:'I am forty years old.', es:'Tengo cuarenta años.', focus:'Tengo'},
     {en:'She is friendly.', es:'Ella es simpática.', focus:'es'},
     {en:'They live in Sevilla.', es:'Viven en Sevilla.', focus:'Viven'},
     {en:'I went to the supermarket.', es:'Fui al supermercado.', focus:'Fui'},
@@ -1805,7 +1809,7 @@ const DATA = {
     {en:"He doesn't like spicy food.", es:'No le gusta la comida picante.', focus:'le gusta'},
     {en:'Yesterday I rested.', es:'Ayer descansé.', focus:'descansé'},
     {en:'We took the train to Madrid.', es:'Tomamos el tren a Madrid.', focus:'Tomamos'},
-    {en:'I work as an IT manager.', es:'Trabajo como gerente de IT.', focus:'Trabajo'},
+    {en:'I work as an IT manager.', es:'Trabajo como gerente de informática.', focus:'Trabajo'},
     {en:'She prepares dinner.', es:'Ella prepara la cena.', focus:'prepara'},
     {en:'I want to learn Spanish.', es:'Quiero aprender español.', focus:'Quiero'},
     {en:'He cleans the house on Saturdays.', es:'Él limpia la casa los sábados.', focus:'limpia'},
@@ -1836,7 +1840,20 @@ const DATA = {
     {en:'I go to bed at eleven.', es:'Me acuesto a las once.', focus:'Me acuesto'},
     {en:'I find my keys on the table.', es:'Encuentro mis llaves en la mesa.', focus:'Encuentro'},
     {en:'I feel happy today.', es:'Hoy me siento feliz.', focus:'me siento'},
-    {en:'I stay at home on Sundays.', es:'Los domingos me quedo en casa.', focus:'me quedo'}
+    {en:'I stay at home on Sundays.', es:'Los domingos me quedo en casa.', focus:'me quedo'},
+    // === Longer sentences (for Sentence Builder "Hard") ===
+    {en:'Every day I have coffee with toast at home.', es:'Todos los días desayuno café con tostadas en casa.', focus:'desayuno'},
+    {en:'On Saturday morning I go to the market with my mother.', es:'El sábado por la mañana voy al mercado con mi madre.', focus:'voy'},
+    {en:'After dinner, my family and I watch television.', es:'Después de cenar, mi familia y yo vemos la televisión.', focus:'vemos'},
+    {en:'In summer we go to the beach and swim in the sea.', es:'En verano vamos a la playa y nadamos en el mar.', focus:'nadamos'},
+    {en:'My little brother always gets up very late on Sundays.', es:'Mi hermano pequeño siempre se levanta muy tarde los domingos.', focus:'se levanta'},
+    {en:'When it rains, I prefer to stay home reading a good book.', es:'Cuando llueve, prefiero quedarme en casa leyendo un buen libro.', focus:'prefiero'},
+    {en:'The children do their homework before playing in the park.', es:'Los niños hacen los deberes antes de jugar en el parque.', focus:'hacen'},
+    {en:'My grandmother makes a delicious paella for the whole family.', es:'Mi abuela prepara una paella deliciosa para toda la familia.', focus:'prepara'},
+    {en:'Before going to bed, I brush my teeth and read for a while.', es:'Antes de acostarme, me lavo los dientes y leo un rato.', focus:'me lavo'},
+    {en:'The teacher explains the lesson and the students take notes.', es:'El profesor explica la lección y los alumnos toman apuntes.', focus:'explica'},
+    {en:'This weekend we are going to visit our cousins in Sevilla.', es:'Este fin de semana vamos a visitar a nuestros primos en Sevilla.', focus:'vamos a visitar'},
+    {en:'In the afternoon I take a walk through the city centre.', es:'Por la tarde doy un paseo por el centro de la ciudad.', focus:'doy'}
   ],
 
   // PLACES & ACTIONS: from "Actions in different places" section.
@@ -2873,17 +2890,29 @@ Games.fillBlank = {
 Games.sentenceBuilder = {
   name: 'Sentence Builder',
   description: 'Tap word tiles to construct the Spanish sentence',
-  state: { awaitingNext: false, current: null, placed: [], bank: [] },
+  state: { diff: 'easy', awaitingNext: false, current: null, placed: [], bank: [] },
+
+  // Subject pronouns that Spanish routinely drops (normalized, no accents).
+  PRONOUNS: new Set(['yo','tu','el','ella','usted','nosotros','nosotras','vosotros','vosotras','ellos','ellas','ustedes']),
+  TRAP_COUNT: { easy: 1, medium: 2, hard: 3 },
 
   init() {
-    this.state = { awaitingNext: false, current: null, placed: [], bank: [] };
+    this.state = { diff: this.state.diff || 'easy', awaitingNext: false, current: null, placed: [], bank: [], marks: [], recorded: false };
+    this.trapPool = this.buildTrapPool();
     document.getElementById('main').innerHTML = `
+      <div class="controls">
+        <span class="controls-caption">Difficulty</span>
+        <button class="filter-btn active" data-diff="easy">Easy</button>
+        <button class="filter-btn" data-diff="medium">Medium</button>
+        <button class="filter-btn" data-diff="hard">Hard</button>
+      </div>
       <div class="prompt-card">
         <div class="prompt-ask">Translate to Spanish:</div>
         <div class="prompt-main" id="sb-english">—</div>
       </div>
       <div class="tile-target" id="sb-target"></div>
       <div class="tile-bank" id="sb-bank"></div>
+      <div class="sb-hint">Tap a word to add it. Drag placed words to reorder; tap a placed word to remove it.</div>
       <div class="input-row">
         <button class="primary" id="sb-check" style="flex:1;">Check</button>
         <button class="primary" id="sb-clear" style="background:#7a7466;">Clear</button>
@@ -2891,9 +2920,22 @@ Games.sentenceBuilder = {
       <div id="feedback-area"></div>
       ${this.renderStatsBlock()}
     `;
+    document.querySelectorAll('[data-diff]').forEach(b => b.addEventListener('click', () => this.setDiff(b.dataset.diff)));
     document.getElementById('sb-check').addEventListener('click', () => this.check());
     document.getElementById('sb-clear').addEventListener('click', () => this.clear());
+    this.syncDiff();
     this.next();
+  },
+
+  syncDiff() {
+    document.querySelectorAll('[data-diff]').forEach(b => b.classList.toggle('active', b.dataset.diff === this.state.diff));
+  },
+
+  setDiff(diff) {
+    this.state.diff = diff;
+    this.syncDiff();
+    this.next();
+    this.refreshStatsBlock();
   },
 
   renderStatsBlock() {
@@ -2905,13 +2947,45 @@ Games.sentenceBuilder = {
     </div>`;
   },
 
+  wordsOf(str) {
+    return str.replace(/[.,!?¿¡;:]/g, '').split(/\s+/).filter(Boolean);
+  },
+
+  buildTrapPool() {
+    const map = new Map();
+    DATA.sentences.forEach(s => this.wordsOf(s.es).forEach(w => {
+      const n = normalize(w);
+      if (!map.has(n)) map.set(n, w.toLowerCase());
+    }));
+    return [...map.values()];
+  },
+
+  poolForDiff() {
+    const d = this.state.diff;
+    const pool = DATA.sentences.filter(s => {
+      const n = this.wordsOf(s.es).length;
+      if (d === 'easy') return n <= 4;
+      if (d === 'medium') return n >= 5 && n <= 7;
+      return n >= 8;
+    });
+    return pool.length ? pool : DATA.sentences;
+  },
+
   next() {
-    const sentence = pickSmart('sentenceBuilder', DATA.sentences, s => s.es).item;
+    const sentence = pickSmart('sentenceBuilder', this.poolForDiff(), s => s.es).item;
     this.state.current = sentence;
     document.getElementById('sb-english').textContent = sentence.en;
-    const words = sentence.es.replace(/([,.!?¿¡])/g, ' $1').split(/\s+/).filter(Boolean);
-    this.state.bank = shuffle(words.map((w, i) => ({ word: w, id: i, used: false })));
+    const answerWords = this.wordsOf(sentence.es);
+    const answerNorms = new Set(answerWords.map(w => normalize(w)));
+    const trapCount = this.TRAP_COUNT[this.state.diff] || 1;
+    const candidates = this.trapPool.filter(w => !answerNorms.has(normalize(w)));
+    const traps = shuffle(candidates).slice(0, trapCount);
+    const all = answerWords.map(w => ({ word: w, trap: false }))
+      .concat(traps.map(w => ({ word: w, trap: true })));
+    this.state.bank = shuffle(all.map((t, i) => ({ word: t.word, id: i, used: false, trap: t.trap })));
     this.state.placed = [];
+    this.state.marks = [];
+    this.state.recorded = false;
     this.renderTiles();
     document.getElementById('feedback-area').innerHTML = '';
     document.getElementById('sb-check').textContent = 'Check';
@@ -2922,9 +2996,13 @@ Games.sentenceBuilder = {
     const target = document.getElementById('sb-target');
     target.innerHTML = this.state.placed.length === 0
       ? '<span style="color:#7a7466; font-style:italic;">Tap tiles below to build the sentence</span>'
-      : this.state.placed.map((t, idx) => `<button class="tile placed" data-placed-idx="${idx}">${t.word}</button>`).join('');
+      : this.state.placed.map((t, idx) => {
+          const mk = this.state.marks && this.state.marks[idx];
+          const cls = mk === 'wrong' ? ' wrong' : mk === 'misplaced' ? ' misplaced' : '';
+          return `<button class="tile placed${cls}" data-placed-idx="${idx}">${t.word}</button>`;
+        }).join('');
     target.querySelectorAll('[data-placed-idx]').forEach(el => {
-      el.addEventListener('click', () => { if (!this.state.awaitingNext) this.unplace(parseInt(el.dataset.placedIdx)); });
+      el.addEventListener('pointerdown', e => this.onPointerDown(e, parseInt(el.dataset.placedIdx), el));
     });
     const bank = document.getElementById('sb-bank');
     bank.innerHTML = this.state.bank.filter(t => !t.used).map(t => `<button class="tile" data-bank-id="${t.id}">${t.word}</button>`).join('');
@@ -2933,18 +3011,65 @@ Games.sentenceBuilder = {
     });
   },
 
+  // Pointer drag: no movement past a small threshold counts as a tap (remove);
+  // movement reorders the tile to wherever it's dropped. Works for mouse and touch.
+  onPointerDown(e, idx, el) {
+    if (this.state.awaitingNext) return;
+    e.preventDefault();
+    const startX = e.clientX, startY = e.clientY;
+    let moved = false;
+    try { el.setPointerCapture(e.pointerId); } catch (err) {}
+    const move = ev => {
+      if (!moved && (Math.abs(ev.clientX - startX) > 6 || Math.abs(ev.clientY - startY) > 6)) {
+        moved = true; el.classList.add('dragging');
+      }
+    };
+    const up = ev => {
+      el.removeEventListener('pointermove', move);
+      el.removeEventListener('pointerup', up);
+      el.classList.remove('dragging');
+      if (!moved) { this.unplace(idx); return; }
+      this.moveTile(idx, this.dropIndex(ev.clientX));
+    };
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+  },
+
+  dropIndex(clientX) {
+    const tiles = [...document.querySelectorAll('#sb-target [data-placed-idx]')];
+    for (let i = 0; i < tiles.length; i++) {
+      const r = tiles[i].getBoundingClientRect();
+      if (clientX < r.left + r.width / 2) return i;
+    }
+    return tiles.length;
+  },
+
+  moveTile(from, to) {
+    const arr = this.state.placed;
+    const [t] = arr.splice(from, 1);
+    let idx = to > from ? to - 1 : to;
+    if (idx < 0) idx = 0;
+    if (idx > arr.length) idx = arr.length;
+    arr.splice(idx, 0, t);
+    this.state.marks = [];
+    this.renderTiles();
+  },
+
   place(id) {
     const tile = this.state.bank.find(t => t.id === id);
     if (!tile || tile.used) return;
     tile.used = true;
     this.state.placed.push(tile);
+    this.state.marks = [];
     this.renderTiles();
   },
 
   unplace(idx) {
     const tile = this.state.placed[idx];
+    if (!tile) return;
     tile.used = false;
     this.state.placed.splice(idx, 1);
+    this.state.marks = [];
     this.renderTiles();
   },
 
@@ -2952,26 +3077,109 @@ Games.sentenceBuilder = {
     if (this.state.awaitingNext) return;
     this.state.placed.forEach(t => { t.used = false; });
     this.state.placed = [];
+    this.state.marks = [];
     this.renderTiles();
+  },
+
+  acceptedVariants(sentence) {
+    const base = this.wordsOf(sentence.es);
+    const variants = [base];
+    if (base.length > 1 && this.PRONOUNS.has(normalize(base[0]))) variants.push(base.slice(1));
+    (sentence.alt || []).forEach(a => variants.push(this.wordsOf(a)));
+    return variants;
+  },
+
+  acceptedAnswers(sentence) {
+    return this.acceptedVariants(sentence).map(v => normalize(v.join(' ')));
+  },
+
+  // Classify each placed tile against the closest accepted answer:
+  //   'ok'        right word, right place
+  //   'misplaced' right word, wrong place (yellow)
+  //   'wrong'     word not in the answer / surplus (red)
+  // Uses a longest-common-subsequence so a single stray word doesn't cascade
+  // and mark the rest of an otherwise-correct sentence.
+  classifyTiles(builtWords) {
+    const b = builtWords.map(w => normalize(w));
+    let best = null, bestOk = -1;
+    this.acceptedVariants(this.state.current).forEach(v => {
+      const marks = this.classifyAgainst(b, v.map(w => normalize(w)));
+      const ok = marks.filter(m => m === 'ok').length;
+      if (ok > bestOk) { bestOk = ok; best = marks; }
+    });
+    return best || b.map(() => 'wrong');
+  },
+
+  classifyAgainst(b, t) {
+    const m = b.length, n = t.length;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = m - 1; i >= 0; i--)
+      for (let j = n - 1; j >= 0; j--)
+        dp[i][j] = b[i] === t[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    const inLcs = new Set();
+    let i = 0, j = 0;
+    while (i < m && j < n) {
+      if (b[i] === t[j]) { inLcs.add(i); i++; j++; }
+      else if (dp[i + 1][j] >= dp[i][j + 1]) i++;
+      else j++;
+    }
+    const remaining = new Map();
+    t.forEach(w => remaining.set(w, (remaining.get(w) || 0) + 1));
+    inLcs.forEach(idx => remaining.set(b[idx], (remaining.get(b[idx]) || 0) - 1));
+    return b.map((w, idx) => {
+      if (inLcs.has(idx)) return 'ok';
+      const c = remaining.get(w) || 0;
+      if (c > 0) { remaining.set(w, c - 1); return 'misplaced'; }
+      return 'wrong';
+    });
   },
 
   check() {
     if (this.state.awaitingNext) { this.next(); this.refreshStatsBlock(); return; }
-    const built = this.state.placed.map(t => t.word).join(' ').replace(/\s+([,.!?¿¡])/g, '$1');
-    const expected = this.state.current.es;
-    const nu = normalize(built), ne = normalize(expected);
-    let fb;
-    if (built === expected) {
-      recordResult('sentenceBuilder', expected, true);
-      fb = `<div class="feedback correct">✓ <strong>${expected}</strong></div>`;
-    } else if (nu === ne) {
-      recordResult('sentenceBuilder', expected, true);
-      fb = `<div class="feedback almost">Words right but capitalisation/punctuation off. Target: <strong>${expected}</strong>.</div>`;
-    } else {
-      recordResult('sentenceBuilder', expected, false);
-      fb = `<div class="feedback incorrect">✗ You built: <em>${built}</em>. Target: <strong>${expected}</strong>.</div>`;
+    if (this.state.placed.length === 0) return;
+    const builtWords = this.state.placed.map(t => t.word);
+    const builtNorm = normalize(builtWords.join(' '));
+    const sentence = this.state.current;
+    const accepted = this.acceptedAnswers(sentence);
+    const base = this.wordsOf(sentence.es);
+    const droppedPronoun = base.length > 1 && this.PRONOUNS.has(normalize(base[0]));
+
+    if (accepted.includes(builtNorm)) {
+      if (!this.state.recorded) { recordResult('sentenceBuilder', sentence.es, true); this.state.recorded = true; }
+      this.state.marks = [];
+      this.renderTiles();
+      let note = '';
+      if (droppedPronoun && builtNorm === normalize(base.slice(1).join(' '))) {
+        note = ` <span style="color:#7a7466">(you can also include "${base[0]}")</span>`;
+      }
+      document.getElementById('feedback-area').innerHTML = `<div class="feedback correct">✓ <strong>${sentence.es}</strong>${note}</div>`;
+      document.getElementById('sb-check').textContent = 'Next';
+      this.state.awaitingNext = true;
+      return;
     }
-    document.getElementById('feedback-area').innerHTML = fb;
+
+    // Wrong: keep the round open so the player fixes the sentence instead of moving on.
+    if (!this.state.recorded) { recordResult('sentenceBuilder', sentence.es, false); this.state.recorded = true; }
+    this.state.marks = this.classifyTiles(builtWords);
+    this.renderTiles();
+    const hasYellow = this.state.marks.includes('misplaced');
+    const hasRed = this.state.marks.includes('wrong');
+    let legend = 'Fix them and check again.';
+    if (hasRed && hasYellow) legend = 'Red words don’t belong; yellow words are the right word in the wrong place. Fix them and check again.';
+    else if (hasRed) legend = 'The red words don’t belong here. Fix them and check again.';
+    else if (hasYellow) legend = 'The yellow words are right but in the wrong place. Reorder them and check again.';
+    document.getElementById('feedback-area').innerHTML =
+      `<div class="feedback incorrect">✗ Not quite. ${legend}</div>` +
+      `<div class="hint-row"><button class="hint-btn" id="sb-reveal">Show answer</button></div>`;
+    document.getElementById('sb-reveal').addEventListener('click', () => this.reveal());
+    // awaitingNext stays false, button stays "Check" so they can re-check after fixing
+  },
+
+  reveal() {
+    this.state.marks = [];
+    this.renderTiles();
+    document.getElementById('feedback-area').innerHTML =
+      `<div class="feedback incorrect">Answer: <strong>${this.state.current.es}</strong>.</div>`;
     document.getElementById('sb-check').textContent = 'Next';
     this.state.awaitingNext = true;
   },
