@@ -9,7 +9,7 @@ Progress is saved in the browser via `localStorage` (key `jason-spanish-app-v1`)
 
 ## Deploy
 
-Hosted via GitHub Pages at https://super-gill.github.io/spanishgame/ once Pages
+Hosted via GitHub Pages at https://super-gill.github.io/spanish-game/ once Pages
 is enabled (repo Settings > Pages > Branch: `main`, folder `/root`).
 
 ## Editing

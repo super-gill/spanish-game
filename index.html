@@ -498,6 +498,7 @@
   .tile.placed.wrong { background: #b23b2e; color: #fff; box-shadow: 0 0 0 2px rgba(178,59,46,0.35); }
   .tile.placed.misplaced { background: #d9a520; color: #1a2332; box-shadow: 0 0 0 2px rgba(217,165,32,0.4); }
   .sb-hint { font-size: 0.8rem; color: #7a7466; margin: 0.25rem 0 0.75rem; }
+  .app-version { text-align: center; font-size: 0.72rem; color: #b8b0a0; margin-top: 1.5rem; letter-spacing: 0.03em; }
 
   /* Place-action checkbox grid */
   .check-grid {
@@ -2267,6 +2268,9 @@ document.getElementById('back-btn').addEventListener('click', () => navigateTo('
 // =============================================================================
 // HOME VIEW
 // =============================================================================
+// Bump this whenever you push, so the live site shows which build is deployed.
+const APP_VERSION = 'v2026.07.05-1';
+
 function renderHome() {
   let totalC = 0, totalI = 0;
   Object.keys(progress).forEach(g => {
@@ -2300,6 +2304,7 @@ function renderHome() {
         </button>`;
       }).join('')}
     </div>
+    <div class="app-version">${APP_VERSION}</div>
   `;
   main.querySelectorAll('.game-card').forEach(card => {
     card.addEventListener('click', () => navigateTo(card.dataset.game));
