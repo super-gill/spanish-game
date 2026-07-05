@@ -144,6 +144,19 @@ recognisable. No text, no labels, no numbers.
 
 ## Recently shipped (context)
 
+- **Verb Drill rework** — difficulty modes (Easy/Medium/Hard) control how much is
+  given away: Easy shows meaning + stem/category, Medium shows meaning only, Hard
+  hides both. The tense is now a bold pill (was buried in the grey meta line). On a
+  correct answer all hidden metadata is revealed, then it auto-advances after a
+  short pause. On a wrong answer it keeps you on the same verb to retry, offers a
+  hint (stem rule + first letter + length), and reveals the answer after a second
+  miss. First attempt is what's recorded for weak-spot stats.
+- **Spanish special-character bar** — a row of á é í ó ú ñ ü ¿ ¡ buttons under every
+  text input (`accentBar('input-id')` in markup + `wireAccentBar(root)` after
+  render; inserts at the cursor without losing focus). Wired into verbs, vocab
+  (type mode), fill-blank, numbers, dialogue, house, city and clock.
+
+
 - **12 games**: added The House, The City, The Clock (image/visual games).
 - **Smart picker** (`pickSmart`): dedupes repeated words, anti-repeat cooldown so
   nothing recurs back-to-back, and weakness weighting per word = lightweight

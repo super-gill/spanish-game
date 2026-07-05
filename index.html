@@ -144,6 +144,42 @@
     font-size: 1.4rem;
     color: #c2624a;
   }
+  .controls-caption { font-size: 0.8rem; color: #7a7466; align-self: center; margin-right: 0.15rem; }
+  .verb-tense-pill {
+    display: inline-block;
+    background: #1a2332;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    margin: 0.35rem 0 0.75rem;
+  }
+  .prompt-meaning { font-size: 0.95rem; color: #7a7466; font-style: italic; margin-top: 0.6rem; min-height: 1.2em; }
+  .prompt-cat { font-size: 0.82rem; color: #8a8474; margin-top: 0.3rem; min-height: 1.1em; }
+  .autoadvance { font-size: 0.82rem; color: #7a7466; margin-top: 0.5rem; }
+  .accent-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: -0.4rem 0 1rem;
+  }
+  .accent-key {
+    font-family: Georgia, serif;
+    font-size: 1.05rem;
+    min-width: 2.1rem;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid #d9d2c4;
+    border-radius: 8px;
+    background: #fff;
+    color: #1a2332;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .accent-key:hover { background: #f2ede3; }
+  .accent-key:active { background: #e6dece; }
   .obj-card {
     display: inline-flex;
     align-items: center;
@@ -2254,6 +2290,42 @@ function renderHome() {
 }
 
 // =============================================================================
+// SPANISH SPECIAL-CHARACTER BAR
+// =============================================================================
+// Renders a row of clickable buttons for characters not on an English keyboard.
+// Usage: put ${accentBar('input-id')} in the markup, then call wireAccentBar(root)
+// after inserting it so the buttons insert their character at the cursor.
+
+const ACCENT_CHARS = ['á','é','í','ó','ú','ñ','ü','¿','¡'];
+
+function accentBar(inputId) {
+  return `<div class="accent-bar" data-target="${inputId}">` +
+    ACCENT_CHARS.map(c => `<button type="button" class="accent-key" data-char="${c}">${c}</button>`).join('') +
+    `</div>`;
+}
+
+function insertAtCursor(input, text) {
+  if (!input) return;
+  const start = input.selectionStart != null ? input.selectionStart : input.value.length;
+  const end = input.selectionEnd != null ? input.selectionEnd : input.value.length;
+  input.value = input.value.slice(0, start) + text + input.value.slice(end);
+  const pos = start + text.length;
+  input.focus();
+  try { input.setSelectionRange(pos, pos); } catch (e) {}
+}
+
+function wireAccentBar(root) {
+  (root || document).querySelectorAll('.accent-bar').forEach(bar => {
+    const targetId = bar.dataset.target;
+    bar.querySelectorAll('.accent-key').forEach(btn => {
+      // mousedown preventDefault keeps focus/selection in the input on click
+      btn.addEventListener('mousedown', e => e.preventDefault());
+      btn.addEventListener('click', () => insertAtCursor(document.getElementById(targetId), btn.dataset.char));
+    });
+  });
+}
+
+// =============================================================================
 // GAMES
 // =============================================================================
 
@@ -2263,7 +2335,7 @@ const Games = {};
 Games.verbs = {
   name: 'Verb Drill',
   description: 'Conjugation across persons and tenses',
-  state: { mode: 'all', awaitingNext: false, currentCombo: null },
+  state: { mode: 'all', diff: 'easy', awaitingNext: false, currentCombo: null, attempts: 0, recorded: false, revealed: false, timer: null },
 
   PERSONS: ['yo','tu','el','nos','vos','ellos'],
   PERSON_LABELS: {yo:'yo (I)', tu:'tú (you)', el:'él/ella (he/she)', nos:'nosotros (we)', vos:'vosotros (you all)', ellos:'ellos (they)'},
@@ -2271,7 +2343,7 @@ Games.verbs = {
   CAT_LABELS: {'reg-ar':'regular -AR','reg-er':'regular -ER','reg-ir':'regular -IR','stem-ie':'E→IE stem','stem-ue':'O→UE stem','stem-i':'E→I stem','irreg':'irregular','reflexive':'reflexive'},
 
   init() {
-    this.state = { mode: 'all', awaitingNext: false, currentCombo: null };
+    this.state = { mode: 'all', diff: this.state.diff || 'easy', awaitingNext: false, currentCombo: null, attempts: 0, recorded: false, revealed: false, timer: null };
     const main = document.getElementById('main');
     main.innerHTML = `
       <div class="controls">
@@ -2281,27 +2353,68 @@ Games.verbs = {
         <button class="filter-btn" data-mode="regular">Regular only</button>
         <button class="filter-btn" data-mode="weak">Weak spots</button>
       </div>
+      <div class="controls">
+        <span class="controls-caption">Difficulty</span>
+        <button class="filter-btn active" data-diff="easy">Easy</button>
+        <button class="filter-btn" data-diff="medium">Medium</button>
+        <button class="filter-btn" data-diff="hard">Hard</button>
+      </div>
       <div class="prompt-card">
         <div class="prompt-main" id="verb-display">—</div>
-        <div class="prompt-meta" id="verb-meta">—</div>
-        <div class="prompt-ask">Conjugate for:</div>
+        <div class="verb-tense-pill" id="verb-tense">—</div>
+        <div class="prompt-ask">Conjugate for</div>
         <div class="prompt-target" id="person-display">—</div>
-      </div>
-      <div class="hint-row" id="verb-hint-row">
-        <button class="hint-btn">Show meaning</button>
-        <span class="hint-text hidden" id="verb-hint-text"></span>
+        <div class="prompt-meaning" id="verb-meaning"></div>
+        <div class="prompt-cat" id="verb-cat"></div>
       </div>
       <div class="input-row">
         <input type="text" id="answer-input" placeholder="Type the conjugation" autocomplete="off" autocapitalize="off" spellcheck="false">
         <button class="primary" id="submit-btn">Check</button>
       </div>
+      ${accentBar('answer-input')}
       <div id="feedback-area"></div>
       ${this.renderStatsBlock()}
     `;
-    main.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', () => this.setMode(b.dataset.mode)));
+    main.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => this.setMode(b.dataset.mode)));
+    main.querySelectorAll('[data-diff]').forEach(b => b.addEventListener('click', () => this.setDiff(b.dataset.diff)));
+    wireAccentBar(main);
     document.getElementById('submit-btn').addEventListener('click', () => this.check());
     document.getElementById('answer-input').addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); this.check(); }});
+    this.syncDiff();
     this.next();
+  },
+
+  syncDiff() {
+    document.querySelectorAll('[data-diff]').forEach(b => b.classList.toggle('active', b.dataset.diff === this.state.diff));
+  },
+
+  setDiff(diff) {
+    this.state.diff = diff;
+    this.syncDiff();
+    this.applyVisibility();
+  },
+
+  applyVisibility() {
+    const showMeaning = this.state.revealed || this.state.diff !== 'hard';
+    const showCat = this.state.revealed || this.state.diff === 'easy';
+    const m = document.getElementById('verb-meaning');
+    const c = document.getElementById('verb-cat');
+    if (m) m.style.visibility = showMeaning ? 'visible' : 'hidden';
+    if (c) c.style.visibility = showCat ? 'visible' : 'hidden';
+  },
+
+  catNote(verb) {
+    const m = {
+      'reg-ar': 'Regular -AR verb.',
+      'reg-er': 'Regular -ER verb.',
+      'reg-ir': 'Regular -IR verb.',
+      'stem-ie': 'E→IE stem change: the stressed e becomes ie.',
+      'stem-ue': 'O→UE stem change: the stressed o becomes ue.',
+      'stem-i': 'E→I stem change: the stressed e becomes i.',
+      'irreg': 'Irregular verb, learn the forms by heart.',
+      'reflexive': 'Reflexive verb, used with a reflexive pronoun.'
+    };
+    return m[verb.cat] || '';
   },
 
   renderStatsBlock() {
@@ -2362,14 +2475,18 @@ Games.verbs = {
   },
 
   next() {
+    clearTimeout(this.state.timer);
     const combo = this.pick();
     this.state.currentCombo = combo;
+    this.state.attempts = 0;
+    this.state.recorded = false;
+    this.state.revealed = false;
     document.getElementById('verb-display').textContent = combo.verb.inf;
-    document.getElementById('verb-meta').textContent = `${this.CAT_LABELS[combo.verb.cat]} • ${this.TENSE_LABELS[combo.tense]}`;
-    document.getElementById('verb-hint-text').textContent = combo.verb.en;
-    document.getElementById('verb-hint-text').classList.add('hidden');
-    document.getElementById('verb-hint-row').querySelector('.hint-btn').classList.remove('hidden');
+    document.getElementById('verb-tense').textContent = this.TENSE_LABELS[combo.tense];
+    document.getElementById('verb-meaning').textContent = combo.verb.en;
+    document.getElementById('verb-cat').textContent = this.catNote(combo.verb);
     document.getElementById('person-display').textContent = this.PERSON_LABELS[combo.person];
+    this.applyVisibility();
     const input = document.getElementById('answer-input');
     input.value = ''; input.focus();
     document.getElementById('feedback-area').innerHTML = '';
@@ -2377,28 +2494,57 @@ Games.verbs = {
     this.state.awaitingNext = false;
   },
 
+  advance() {
+    clearTimeout(this.state.timer);
+    this.next();
+    this.refreshStatsBlock();
+  },
+
   check() {
-    if (this.state.awaitingNext) { this.next(); this.refreshStatsBlock(); return; }
+    if (this.state.awaitingNext) { this.advance(); return; }
     const input = document.getElementById('answer-input').value.trim();
     if (!input) return;
     const c = this.state.currentCombo;
     const expected = c.verb.conj[c.tense][c.person];
     const key = `${c.verb.inf}:${c.person}:${c.tense}`;
     const nu = normalize(input), ne = normalize(expected);
-    let fb;
-    if (input.toLowerCase() === expected.toLowerCase()) {
-      recordResult('verbs', key, true);
-      fb = `<div class="feedback correct">✓ Correct: <strong>${expected}</strong></div>`;
-    } else if (nu === ne) {
-      recordResult('verbs', key, true);
-      fb = `<div class="feedback almost">Nearly. Your spelling matches but the accent matters: <strong>${expected}</strong>. In Spanish, accents can change meaning (e.g. <em>hablo</em> = I speak, <em>habló</em> = he/she spoke).${accentTrapNote(expected)}</div>`;
-    } else {
-      recordResult('verbs', key, false);
-      fb = `<div class="feedback incorrect">✗ The correct form is <strong>${expected}</strong>. You wrote "<em>${input}</em>".</div>`;
+    const exact = input.toLowerCase() === expected.toLowerCase();
+    const near = !exact && nu === ne;
+
+    if (exact || near) {
+      if (!this.state.recorded) { recordResult('verbs', key, true); this.state.recorded = true; }
+      this.state.revealed = true;
+      this.applyVisibility();
+      const note = near
+        ? `<div class="feedback almost">Nearly. The accent matters: <strong>${expected}</strong>.${accentTrapNote(expected)}</div>`
+        : `<div class="feedback correct">✓ Correct: <strong>${expected}</strong></div>`;
+      document.getElementById('feedback-area').innerHTML = note +
+        `<div class="autoadvance">${c.verb.inf} = ${c.verb.en}. Next in a moment…</div>`;
+      document.getElementById('submit-btn').textContent = 'Next';
+      this.state.awaitingNext = true;
+      this.state.timer = setTimeout(() => { if (this.state.awaitingNext) this.advance(); }, 2800);
+      return;
     }
-    document.getElementById('feedback-area').innerHTML = fb;
-    document.getElementById('submit-btn').textContent = 'Next';
-    this.state.awaitingNext = true;
+
+    // wrong
+    this.state.attempts++;
+    if (!this.state.recorded) { recordResult('verbs', key, false); this.state.recorded = true; }
+    if (this.state.attempts < 2) {
+      document.getElementById('feedback-area').innerHTML =
+        `<div class="feedback incorrect">✗ Not quite, try again.</div>` +
+        `<div class="hint-row"><button class="hint-btn" id="verb-hint-btn">Show a hint</button><span class="hint-text hidden" id="verb-hint">${this.catNote(c.verb)} Starts with "${expected.slice(0,1)}", ${expected.length} letters.</span></div>`;
+      const hb = document.getElementById('verb-hint-btn');
+      hb.addEventListener('click', () => { document.getElementById('verb-hint').classList.remove('hidden'); hb.classList.add('hidden'); });
+      const inp = document.getElementById('answer-input');
+      inp.focus(); inp.select();
+    } else {
+      this.state.revealed = true;
+      this.applyVisibility();
+      document.getElementById('feedback-area').innerHTML =
+        `<div class="feedback incorrect">✗ The correct form is <strong>${expected}</strong>. ${this.catNote(c.verb)}</div>`;
+      document.getElementById('submit-btn').textContent = 'Next';
+      this.state.awaitingNext = true;
+    }
   }
 };
 
@@ -2483,7 +2629,9 @@ Games.vocab = {
         <div class="input-row">
           <input type="text" id="vocab-input" placeholder="Type the Spanish word" autocomplete="off" autocapitalize="off" spellcheck="false">
           <button class="primary" id="vocab-submit">Check</button>
-        </div>`;
+        </div>
+        ${accentBar('vocab-input')}`;
+      wireAccentBar(area);
       const input = document.getElementById('vocab-input');
       input.focus();
       input.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); this.check(input.value.trim()); }});
@@ -2659,9 +2807,11 @@ Games.fillBlank = {
         <input type="text" id="fb-input" placeholder="Type the missing word(s)" autocomplete="off" autocapitalize="off" spellcheck="false">
         <button class="primary" id="fb-submit">Check</button>
       </div>
+      ${accentBar('fb-input')}
       <div id="feedback-area"></div>
       ${this.renderStatsBlock()}
     `;
+    wireAccentBar(document.getElementById('main'));
     document.getElementById('fb-submit').addEventListener('click', () => this.check());
     document.getElementById('fb-input').addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); this.check(); }});
     this.next();
@@ -2854,9 +3004,11 @@ Games.numbers = {
         <input type="text" id="num-input" placeholder="Type it in Spanish words" autocomplete="off" autocapitalize="off" spellcheck="false">
         <button class="primary" id="num-submit">Check</button>
       </div>
+      ${accentBar('num-input')}
       <div id="feedback-area"></div>
       ${this.renderStatsBlock()}
     `;
+    wireAccentBar(document.getElementById('main'));
     document.querySelectorAll('[data-diff]').forEach(b => b.addEventListener('click', () => this.setDiff(b.dataset.diff)));
     document.getElementById('num-submit').addEventListener('click', () => this.check());
     document.getElementById('num-input').addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); this.check(); }});
@@ -3136,7 +3288,9 @@ Games.dialogue = {
         <div class="input-row">
           <input type="text" id="d-input" placeholder="Type your line in Spanish" autocomplete="off" autocapitalize="off" spellcheck="false">
           <button class="primary" id="d-submit">Say it</button>
-        </div>`;
+        </div>
+        ${accentBar('d-input')}`;
+      wireAccentBar(document.getElementById('d-current'));
       const input = document.getElementById('d-input');
       input.focus();
       input.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); this.checkLine(); }});
@@ -3971,7 +4125,9 @@ Games.house = {
       <div class="input-row">
         <input type="text" id="house-input" placeholder="Type in Spanish" autocomplete="off" autocapitalize="off" spellcheck="false">
         <button class="primary" id="house-submit">Check</button>
-      </div>`;
+      </div>
+      ${accentBar('house-input')}`;
+    wireAccentBar(area);
     const input = document.getElementById('house-input');
     input.focus();
     input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); this.check(input.value.trim()); }});
@@ -4101,7 +4257,9 @@ Games.city = {
       <div class="input-row">
         <input type="text" id="city-input" placeholder="Type in Spanish" autocomplete="off" autocapitalize="off" spellcheck="false">
         <button class="primary" id="city-submit">Check</button>
-      </div>`;
+      </div>
+      ${accentBar('city-input')}`;
+    wireAccentBar(area);
     const input = document.getElementById('city-input');
     input.focus();
     input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); this.check(input.value.trim()); }});
@@ -4223,7 +4381,9 @@ Games.clock = {
       <div class="input-row">
         <input type="text" id="clock-input" placeholder="e.g. son las tres y cuarto" autocomplete="off" autocapitalize="off" spellcheck="false">
         <button class="primary" id="clock-submit">Check</button>
-      </div>`;
+      </div>
+      ${accentBar('clock-input')}`;
+    wireAccentBar(area);
     const input = document.getElementById('clock-input');
     input.focus();
     input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); this.check(input.value.trim()); }});
