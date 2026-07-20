@@ -144,6 +144,24 @@ recognisable. No text, no labels, no numbers.
 
 ## Recently shipped (context)
 
+- **Palabras conectoras + Ser y Estar (July 2026 lessons)** — captured two new Drive
+  docs. Added a **connectors** vocab topic (y, pero, porque, aunque, entonces,
+  también, tampoco, después, ahora, todavía, sin embargo) with a `TYPE_BY_TOPIC`
+  entry. Added 7 connector example sentences and 8 ser/estar sentences to
+  `DATA.sentences`. Gave **ser** and **estar** their preterite forms (fui/fue...,
+  estuve/estuvo...), so with the auto conditional they now work in all three verb
+  tenses. Note for later: a dedicated **ser vs estar** chooser game (same word, pick
+  which "to be") would suit the doc's meaning-contrast exercise.
+- **Conditional tense + En La Casa top-up (July 2026 lesson)** — captured from the
+  teacher's Drive doc. Added a **Conditional** tense to the Verb Drill: it's
+  computed at load (`conditionalForms` + `CONDITIONAL_STEMS` for the ~12 irregular
+  stems like poner→pondr, tener→tendr, hacer→har) and attached as
+  `verb.conj.conditional`, so every non-reflexive verb gets it and new verbs get it
+  for free. New "Conditional only" filter; "All" now mixes present/past/conditional.
+  Added 8 `¿Pondrías...?` / `pondría` house sentences for Sentence Builder and Fill
+  the Blank, and 6 missing furniture words (silla ergonómica, cama individual,
+  lámpara de pie, mesa baja, encimera, juguetes). Reflexive conditionals (me
+  pondría...) deferred.
 - **Sentence Builder rework** — difficulty by length (Easy ≤4 words, Medium 5-7,
   Hard 8+; ~12 longer sentences added for Hard). The word bank now includes trap
   tiles (1/2/3 by difficulty) pulled from other sentences and filtered out of the

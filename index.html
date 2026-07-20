@@ -985,7 +985,11 @@ const DATA = {
       {en:'dining table', es:'mesa de comedor'}, {en:'sofa bed', es:'sofá cama'},
       {en:'sun lounger', es:'tumbona'}, {en:'barbecue', es:'barbacoa'},
       {en:'candles', es:'velas'}, {en:'basket', es:'cesta'},
-      {en:'fridge', es:'nevera'}, {en:'television', es:'televisor'}
+      {en:'fridge', es:'nevera'}, {en:'television', es:'televisor'},
+      // Added from the En La Casa lesson (July 2026)
+      {en:'ergonomic chair', es:'silla ergonómica'}, {en:'single bed', es:'cama individual'},
+      {en:'floor lamp', es:'lámpara de pie'}, {en:'coffee table', es:'mesa baja'},
+      {en:'worktop', es:'encimera'}, {en:'toys', es:'juguetes'}
     ],
     garaje: [
       {en:'car', es:'coche'}, {en:'motorbike', es:'moto'},
@@ -1017,6 +1021,15 @@ const DATA = {
     seasons: [
       {en:'summer', es:'verano'}, {en:'autumn', es:'otoño'},
       {en:'winter', es:'invierno'}, {en:'spring', es:'primavera'}
+    ],
+    // Connecting words (Palabras conectoras lesson, July 2026)
+    connectors: [
+      {en:'and', es:'y'}, {en:'but', es:'pero'},
+      {en:'because', es:'porque'}, {en:'although', es:'aunque'},
+      {en:'so / then', es:'entonces'}, {en:'also / as well', es:'también'},
+      {en:'neither / not either', es:'tampoco'}, {en:'afterwards / then', es:'después'},
+      {en:'now', es:'ahora'}, {en:'still / yet', es:'todavía'},
+      {en:'however', es:'sin embargo'}
     ]
   },
 
@@ -1627,10 +1640,12 @@ const DATA = {
 
     // ===== Irregular (present only) =====
     {inf:'ser', en:'to be (permanent)', cat:'irreg', conj:{
-      present:{yo:'soy',tu:'eres',el:'es',nos:'somos',vos:'sois',ellos:'son'}
+      present:{yo:'soy',tu:'eres',el:'es',nos:'somos',vos:'sois',ellos:'son'},
+      past:{yo:'fui',tu:'fuiste',el:'fue',nos:'fuimos',vos:'fuisteis',ellos:'fueron'}
     }},
     {inf:'estar', en:'to be (temporary)', cat:'irreg', conj:{
-      present:{yo:'estoy',tu:'estás',el:'está',nos:'estamos',vos:'estáis',ellos:'están'}
+      present:{yo:'estoy',tu:'estás',el:'está',nos:'estamos',vos:'estáis',ellos:'están'},
+      past:{yo:'estuve',tu:'estuviste',el:'estuvo',nos:'estuvimos',vos:'estuvisteis',ellos:'estuvieron'}
     }},
     {inf:'tener', en:'to have', cat:'irreg', conj:{
       present:{yo:'tengo',tu:'tienes',el:'tiene',nos:'tenemos',vos:'tenéis',ellos:'tienen'}
@@ -1854,7 +1869,33 @@ const DATA = {
     {en:'Before going to bed, I brush my teeth and read for a while.', es:'Antes de acostarme, me lavo los dientes y leo un rato.', focus:'me lavo'},
     {en:'The teacher explains the lesson and the students take notes.', es:'El profesor explica la lección y los alumnos toman apuntes.', focus:'explica'},
     {en:'This weekend we are going to visit our cousins in Sevilla.', es:'Este fin de semana vamos a visitar a nuestros primos en Sevilla.', focus:'vamos a visitar'},
-    {en:'In the afternoon I take a walk through the city centre.', es:'Por la tarde doy un paseo por el centro de la ciudad.', focus:'doy'}
+    {en:'In the afternoon I take a walk through the city centre.', es:'Por la tarde doy un paseo por el centro de la ciudad.', focus:'doy'},
+    // === Conditional of poner (En La Casa lesson, July 2026) ===
+    {en:'I would put a washing machine in the kitchen.', es:'Pondría una lavadora en la cocina.', focus:'Pondría'},
+    {en:"I wouldn't put a bed in the living room.", es:'No pondría una cama en el salón.', focus:'No pondría'},
+    {en:'Would you put a sofa in the bedroom?', es:'¿Pondrías un sofá en el dormitorio?', focus:'Pondrías'},
+    {en:'I would put a plant in the bedroom.', es:'Pondría una planta en el dormitorio.', focus:'Pondría'},
+    {en:"I wouldn't put a table in the bathroom.", es:'No pondría una mesa en el baño.', focus:'No pondría'},
+    {en:'Would you put a television in the bathroom?', es:'¿Pondrías una televisión en el baño?', focus:'Pondrías'},
+    {en:'I would put a bookshelf in the hallway.', es:'Pondría una estantería en el pasillo.', focus:'Pondría'},
+    {en:'I would put a small table on the terrace.', es:'Pondría una mesa pequeña en la terraza.', focus:'Pondría'},
+    // === Connecting words (Palabras conectoras lesson, July 2026) ===
+    {en:'I study Spanish because I want to travel around Spain.', es:'Estudio español porque quiero viajar por España.', focus:'porque'},
+    {en:"I'm tired, however I'm going out with my friends.", es:'Estoy cansado, sin embargo voy a salir con mis amigos.', focus:'sin embargo'},
+    {en:'First I have breakfast, then I go to work.', es:'Primero desayuno, después voy al trabajo.', focus:'después'},
+    {en:'I arrived late, so I missed the bus.', es:'Llegué tarde, entonces perdí el autobús.', focus:'entonces'},
+    {en:'I used to live in Valencia, now I live in Madrid.', es:'Antes vivía en Valencia, ahora vivo en Madrid.', focus:'ahora'},
+    {en:"I don't have a car, nor do I have a bicycle.", es:'No tengo coche, tampoco tengo bicicleta.', focus:'tampoco'},
+    {en:'I like the beach, but my brother prefers the mountains.', es:'Me gusta la playa, pero mi hermano prefiere la montaña.', focus:'pero'},
+    // === Ser y Estar lesson (July 2026) ===
+    {en:'Madrid is the capital of Spain.', es:'Madrid es la capital de España.', focus:'es'},
+    {en:'My sister is very friendly and fun.', es:'Mi hermana es muy simpática y divertida.', focus:'es'},
+    {en:'We are Spanish teachers.', es:'Nosotros somos profesores de español.', focus:'somos'},
+    {en:'The exam was very hard last week.', es:'El examen fue muy difícil la semana pasada.', focus:'fue'},
+    {en:'The chocolate is on the table.', es:'El chocolate está sobre la mesa.', focus:'está'},
+    {en:'Today the sky is completely clear.', es:'Hoy el cielo está completamente despejado.', focus:'está'},
+    {en:'They are very nervous before the exam.', es:'Ellos están muy nerviosos antes del examen.', focus:'están'},
+    {en:'Yesterday we were at home all day.', es:'Ayer estuvimos en casa todo el día.', focus:'estuvimos'}
   ],
 
   // PLACES & ACTIONS: from "Actions in different places" section.
@@ -2269,7 +2310,7 @@ document.getElementById('back-btn').addEventListener('click', () => navigateTo('
 // HOME VIEW
 // =============================================================================
 // Bump this whenever you push, so the live site shows which build is deployed.
-const APP_VERSION = 'v2026.07.05-1';
+const APP_VERSION = 'v2026.07.20-1';
 
 function renderHome() {
   let totalC = 0, totalI = 0;
@@ -2348,6 +2389,35 @@ function wireAccentBar(root) {
 }
 
 // =============================================================================
+// CONDITIONAL TENSE (computed, not hand-written)
+// =============================================================================
+// The conditional is regular for almost every verb: infinitive + ía endings.
+// Only a dozen verbs use an irregular stem (the same stems as the future).
+// We compute it once at load and attach it as verb.conj.conditional, so the
+// verb game treats it like any other tense and new verbs get it for free.
+
+const CONDITIONAL_STEMS = {
+  poner: 'pondr', tener: 'tendr', hacer: 'har', decir: 'dir', poder: 'podr',
+  querer: 'querr', venir: 'vendr', salir: 'saldr', saber: 'sabr', haber: 'habr',
+  caber: 'cabr', valer: 'valdr'
+};
+const CONDITIONAL_ENDINGS = { yo: 'ía', tu: 'ías', el: 'ía', nos: 'íamos', vos: 'íais', ellos: 'ían' };
+
+function conditionalForms(inf) {
+  const stem = CONDITIONAL_STEMS[inf] || inf;
+  const out = {};
+  for (const p in CONDITIONAL_ENDINGS) out[p] = stem + CONDITIONAL_ENDINGS[p];
+  return out;
+}
+
+// Attach conditional to every non-reflexive verb (reflexives need a pronoun and
+// are present-only for now).
+DATA.verbs.forEach(v => {
+  if (v.cat === 'reflexive') return;
+  v.conj.conditional = conditionalForms(v.inf);
+});
+
+// =============================================================================
 // GAMES
 // =============================================================================
 
@@ -2361,7 +2431,7 @@ Games.verbs = {
 
   PERSONS: ['yo','tu','el','nos','vos','ellos'],
   PERSON_LABELS: {yo:'yo (I)', tu:'tú (you)', el:'él/ella (he/she)', nos:'nosotros (we)', vos:'vosotros (you all)', ellos:'ellos (they)'},
-  TENSE_LABELS: {present:'present', past:'past (preterite)'},
+  TENSE_LABELS: {present:'present', past:'past (preterite)', conditional:'conditional'},
   CAT_LABELS: {'reg-ar':'regular -AR','reg-er':'regular -ER','reg-ir':'regular -IR','stem-ie':'E→IE stem','stem-ue':'O→UE stem','stem-i':'E→I stem','irreg':'irregular','reflexive':'reflexive'},
 
   init() {
@@ -2372,6 +2442,7 @@ Games.verbs = {
         <button class="filter-btn active" data-mode="all">All</button>
         <button class="filter-btn" data-mode="present">Present only</button>
         <button class="filter-btn" data-mode="past">Past only</button>
+        <button class="filter-btn" data-mode="conditional">Conditional only</button>
         <button class="filter-btn" data-mode="regular">Regular only</button>
         <button class="filter-btn" data-mode="weak">Weak spots</button>
       </div>
@@ -2468,7 +2539,8 @@ Games.verbs = {
   getActiveTenses() {
     if (this.state.mode === 'present') return ['present'];
     if (this.state.mode === 'past') return ['past'];
-    return ['present','past'];
+    if (this.state.mode === 'conditional') return ['conditional'];
+    return ['present','past','conditional'];
   },
 
   pick() {
@@ -3762,7 +3834,8 @@ Games.recognition = {
     rooms: 'noun', houseObjects: 'noun', garaje: 'noun', cityObjects: 'noun', seasons: 'noun',
     weather: 'phrase', timeOfDay: 'phrase', greetings: 'phrase',
     adjectives: 'adjective', colours: 'adjective',
-    emotions: 'adjective', flavours: 'adjective', nationalities: 'adjective'
+    emotions: 'adjective', flavours: 'adjective', nationalities: 'adjective',
+    connectors: 'word'
   },
 
   _pool: null,
