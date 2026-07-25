@@ -151,10 +151,10 @@ recognisable. No text, no labels, no numbers.
   pronoun×thing combos), **Connect It** (pick the connector that joins two clauses,
   from the Palabras conectoras exercise), **Adjective Agreement** (noun + code-drawn
   colour swatch, pick the agreed form; gender+number), **Make it Plural** (type the
-  plural, tolerant, accent bar). **Place Match** retired via `hidden:true` (superseded
-  by Errands; kept in GAME_KEYS for stats). Still to do from the brainstorm: the
-  **sorting/categorisation** engine (drag items into buckets), and the audio/listening
-  pipeline (PINNED, needs a paid TTS sub).
+  plural, tolerant, accent bar), and **Sort It** (tap a word, tap a bucket; sorts by
+  gender el/la or by category food/animal/place; scores N/N). **Place Match** retired
+  via `hidden:true` (superseded by Errands; kept in GAME_KEYS for stats). Remaining
+  brainstorm item: the audio/listening pipeline (PINNED, needs a paid TTS sub).
 - **Palabras conectoras + Ser y Estar (July 2026 lessons)** — captured two new Drive
   docs. Added a **connectors** vocab topic (y, pero, porque, aunque, entonces,
   también, tampoco, después, ahora, todavía, sin embargo) with a `TYPE_BY_TOPIC`

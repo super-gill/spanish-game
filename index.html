@@ -499,6 +499,15 @@
   .tile.placed.misplaced { background: #d9a520; color: #1a2332; box-shadow: 0 0 0 2px rgba(217,165,32,0.4); }
   .sb-hint { font-size: 0.8rem; color: #7a7466; margin: 0.25rem 0 0.75rem; }
   .adj-swatch { display: inline-block; width: 1.1em; height: 1.1em; border-radius: 4px; border: 1px solid #d9d2c4; vertical-align: -0.15em; margin-left: 0.3rem; }
+  .sort-tray { display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 2.6rem; padding: 0.6rem; border: 1px dashed #d9d2c4; border-radius: 10px; margin-bottom: 1rem; align-items: center; }
+  .sort-hint { font-size: 0.85rem; color: #7a7466; font-style: italic; }
+  .sort-buckets { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .sort-bucket { flex: 1; min-width: 120px; border: 1px solid #e6e0d4; border-radius: 12px; padding: 0.6rem; background: #fff; cursor: pointer; }
+  .sort-bucket-label { font-size: 0.8rem; color: #7a7466; margin-bottom: 0.4rem; text-align: center; }
+  .sort-bucket-items { display: flex; flex-wrap: wrap; gap: 0.4rem; min-height: 2rem; }
+  .tile.selected { outline: 2px solid #1a2332; outline-offset: 1px; }
+  .tile.correct { background: #2e7d32; color: #fff; border-color: #2e7d32; }
+  .tile.wrong { background: #b23b2e; color: #fff; border-color: #b23b2e; }
   .app-version { text-align: center; font-size: 0.72rem; color: #b8b0a0; margin-top: 1.5rem; letter-spacing: 0.03em; }
 
   /* Place-action checkbox grid */
@@ -2058,7 +2067,7 @@ const DATA = {
 // STORAGE
 // =============================================================================
 const STORAGE_KEY = 'jason-spanish-app-v1';
-const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','numbers','placeAction','dialogue','recognition','house','city','clock','errands','serEstar','gustar','connectorJoin','agreement','plurals'];
+const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','numbers','placeAction','dialogue','recognition','house','city','clock','errands','serEstar','gustar','connectorJoin','agreement','plurals','sorting'];
 
 // Use null-prototype objects so keys like "constructor", "toString", etc.
 // don't collide with Object.prototype properties.
@@ -2320,7 +2329,7 @@ document.getElementById('back-btn').addEventListener('click', () => navigateTo('
 // HOME VIEW
 // =============================================================================
 // Bump this whenever you push, so the live site shows which build is deployed.
-const APP_VERSION = 'v2026.07.20-3';
+const APP_VERSION = 'v2026.07.20-4';
 
 function renderHome() {
   let totalC = 0, totalI = 0;
@@ -5171,6 +5180,134 @@ Games.plurals = {
     document.getElementById('feedback-area').innerHTML = fb;
     document.getElementById('pl-submit').textContent = 'Next';
     this.state.awaitingNext = true;
+  }
+};
+
+// =============================================================================
+// SORT IT — categorisation (tap a word, tap a bucket)
+// =============================================================================
+Games.sorting = {
+  name: 'Sort It',
+  description: 'Drop each word into the right group',
+  state: { awaitingNext: false, current: null, selected: null, checked: false },
+
+  init() {
+    this.state = { awaitingNext: false, current: null, selected: null, checked: false };
+    document.getElementById('main').innerHTML = `
+      <div class="prompt-card"><div class="prompt-ask" id="sort-q">—</div></div>
+      <div class="sort-tray" id="sort-tray"></div>
+      <div class="sort-buckets" id="sort-buckets"></div>
+      <div class="input-row"><button class="primary" id="sort-check" style="flex:1;">Check</button></div>
+      <div id="feedback-area"></div>
+      ${this.renderStatsBlock()}
+    `;
+    document.getElementById('sort-check').addEventListener('click', () => this.check());
+    this.next();
+  },
+
+  renderStatsBlock() {
+    const s = gameAggregateStats('sorting');
+    const acc = s.total > 0 ? Math.round((s.correct/s.total)*100) + '%' : '—';
+    return `<div class="game-stats" id="stats-block">
+      <div class="stats-row"><span>Placed</span><strong>${s.total}</strong></div>
+      <div class="stats-row"><span>Accuracy</span><strong>${acc}</strong></div>
+    </div>`;
+  },
+
+  refreshStatsBlock() {
+    const b = document.getElementById('stats-block');
+    if (b) b.outerHTML = this.renderStatsBlock();
+  },
+
+  gen() {
+    const type = Math.random() < 0.5 ? 'gender' : 'category';
+    if (type === 'gender') {
+      const nouns = shuffle(DATA.articleNouns.slice()).slice(0, 6);
+      return {
+        q: 'Sort each word by gender',
+        buckets: [{ id: 'el', label: 'el' }, { id: 'la', label: 'la' }],
+        items: nouns.map(n => ({ es: n.noun, bucket: n.article }))
+      };
+    }
+    const take = (arr, n) => shuffle(arr.slice()).slice(0, n);
+    const foods = take(DATA.vocab.food, 2).map(x => ({ es: x.es, bucket: 'comida' }));
+    const animals = take(DATA.vocab.pets, 2).map(x => ({ es: x.es, bucket: 'animal' }));
+    const places = take(DATA.vocab.city, 2).map(x => ({ es: x.es, bucket: 'lugar' }));
+    return {
+      q: 'Sort each word into its category',
+      buckets: [{ id: 'comida', label: 'Comida (food)' }, { id: 'animal', label: 'Animal' }, { id: 'lugar', label: 'Lugar (place)' }],
+      items: shuffle(foods.concat(animals, places))
+    };
+  },
+
+  next() {
+    const r = this.gen();
+    r.items.forEach((it, i) => { it.id = i; it.placed = null; });
+    this.state.current = r;
+    this.state.selected = null;
+    this.state.checked = false;
+    this.state.awaitingNext = false;
+    document.getElementById('sort-q').textContent = r.q;
+    document.getElementById('feedback-area').innerHTML = '';
+    document.getElementById('sort-check').textContent = 'Check';
+    this.render();
+  },
+
+  tileHtml(it) {
+    let cls = 'tile';
+    if (this.state.selected === it.id) cls += ' selected';
+    if (this.state.checked) cls += (it.placed === it.bucket) ? ' correct' : ' wrong';
+    return `<button class="${cls}" data-item="${it.id}">${it.es}</button>`;
+  },
+
+  render() {
+    const r = this.state.current;
+    const tray = document.getElementById('sort-tray');
+    const unplaced = r.items.filter(it => it.placed === null);
+    tray.innerHTML = unplaced.length ? unplaced.map(it => this.tileHtml(it)).join('') : '<span class="sort-hint">All placed. Press Check.</span>';
+    document.getElementById('sort-buckets').innerHTML = r.buckets.map(b => `
+      <div class="sort-bucket" data-bucket="${b.id}">
+        <div class="sort-bucket-label">${b.label}</div>
+        <div class="sort-bucket-items">${r.items.filter(it => it.placed === b.id).map(it => this.tileHtml(it)).join('')}</div>
+      </div>`).join('');
+    document.querySelectorAll('[data-item]').forEach(el => el.addEventListener('click', () => this.tapItem(+el.dataset.item)));
+    document.querySelectorAll('[data-bucket]').forEach(el => el.addEventListener('click', () => this.tapBucket(el.dataset.bucket)));
+  },
+
+  tapItem(id) {
+    if (this.state.awaitingNext) return;
+    const it = this.state.current.items[id];
+    if (it.placed !== null) { it.placed = null; this.state.selected = null; }
+    else { this.state.selected = this.state.selected === id ? null : id; }
+    this.render();
+  },
+
+  tapBucket(bid) {
+    if (this.state.awaitingNext || this.state.selected === null) return;
+    this.state.current.items[this.state.selected].placed = bid;
+    this.state.selected = null;
+    this.render();
+  },
+
+  check() {
+    if (this.state.awaitingNext) { this.next(); this.refreshStatsBlock(); return; }
+    const items = this.state.current.items;
+    if (items.some(it => it.placed === null)) {
+      document.getElementById('feedback-area').innerHTML = '<div class="feedback almost">Place every word first.</div>';
+      return;
+    }
+    let right = 0;
+    items.forEach(it => {
+      const ok = it.placed === it.bucket;
+      if (ok) right++;
+      recordResult('sorting', it.es, ok);
+    });
+    this.state.checked = true;
+    this.state.awaitingNext = true;
+    this.render();
+    const cls = right === items.length ? 'correct' : 'almost';
+    document.getElementById('feedback-area').innerHTML = `<div class="feedback ${cls}">${right} / ${items.length} correct.</div>`;
+    document.getElementById('sort-check').textContent = 'Next';
   }
 };
 
