@@ -498,6 +498,7 @@
   .tile.placed.wrong { background: #b23b2e; color: #fff; box-shadow: 0 0 0 2px rgba(178,59,46,0.35); }
   .tile.placed.misplaced { background: #d9a520; color: #1a2332; box-shadow: 0 0 0 2px rgba(217,165,32,0.4); }
   .sb-hint { font-size: 0.8rem; color: #7a7466; margin: 0.25rem 0 0.75rem; }
+  .adj-swatch { display: inline-block; width: 1.1em; height: 1.1em; border-radius: 4px; border: 1px solid #d9d2c4; vertical-align: -0.15em; margin-left: 0.3rem; }
   .app-version { text-align: center; font-size: 0.72rem; color: #b8b0a0; margin-top: 1.5rem; letter-spacing: 0.03em; }
 
   /* Place-action checkbox grid */
@@ -784,8 +785,10 @@ const DATA = {
       {en:'brother', es:'hermano'}, {en:'sister', es:'hermana'},
       {en:'uncle', es:'tío'}, {en:'aunt', es:'tía'},
       {en:'grandfather', es:'abuelo'}, {en:'grandmother', es:'abuela'},
-      {en:'cousin (m)', es:'primo'}, {en:'partner', es:'pareja'},
+      {en:'cousin (m)', es:'primo'}, {en:'cousin (f)', es:'prima'},
+      {en:'partner', es:'pareja'},
       {en:'husband', es:'marido'}, {en:'wife', es:'esposa'},
+      {en:'spouse (m)', es:'esposo'},
       {en:'boyfriend', es:'novio'}, {en:'girlfriend', es:'novia'},
       {en:'nephew', es:'sobrino'}, {en:'niece', es:'sobrina'}
     ],
@@ -819,7 +822,11 @@ const DATA = {
       {en:'pasta', es:'pasta'}, {en:'noodles', es:'fideos'},
       {en:'carrot', es:'zanahoria'}, {en:'biscuits', es:'galletas'},
       {en:'cake / pastry', es:'pastel'},
-      {en:'bacon', es:'tocino'}, {en:'yoghurt', es:'yogur'}
+      {en:'bacon', es:'tocino'}, {en:'yoghurt', es:'yogur'},
+      // From the book (course reference)
+      {en:'melon', es:'melón'}, {en:'burger', es:'hamburguesa'},
+      {en:'tacos', es:'tacos'}, {en:'lemonade', es:'limonada'},
+      {en:'drink', es:'bebida'}, {en:'allergy', es:'alergia'}
     ],
     city: [
       {en:'bank', es:'banco'}, {en:'library', es:'biblioteca'},
@@ -919,7 +926,8 @@ const DATA = {
       {en:'tasty', es:'sabroso'}, {en:'salty', es:'salado'},
       {en:'healthy', es:'sano'}, {en:'spicy / hot', es:'picante'},
       {en:'sweet', es:'dulce'}, {en:'sour', es:'agrio'},
-      {en:'bitter', es:'amargo'}
+      {en:'bitter', es:'amargo'},
+      {en:'vegetarian', es:'vegetariano'}, {en:'vegan', es:'vegano'}
     ],
     homes: [
       {en:'house', es:'casa'}, {en:'flat / apartment', es:'apartamento'},
@@ -934,7 +942,8 @@ const DATA = {
       {en:'early', es:'temprano'}, {en:'late', es:'tarde'},
       {en:'today', es:'hoy'}, {en:'yesterday', es:'ayer'},
       {en:'tomorrow', es:'mañana'}, {en:'here', es:'aquí'},
-      {en:'there', es:'allí'}
+      {en:'there', es:'allí'},
+      {en:"o'clock (precisely)", es:'en punto'}
     ],
     rooms: [
       {en:'kitchen', es:'cocina'}, {en:'living room', es:'salón'},
@@ -1011,7 +1020,8 @@ const DATA = {
       {en:'see you soon', es:'hasta pronto'}, {en:'see you', es:'nos vemos'},
       {en:'where are you from?', es:'¿de dónde eres?'},
       {en:'where do you live?', es:'¿dónde vives?'},
-      {en:'how old are you?', es:'¿cuántos años tienes?'}
+      {en:'how old are you?', es:'¿cuántos años tienes?'},
+      {en:'single', es:'soltero'}, {en:'married', es:'casado'}
     ],
     nationalities: [
       {en:'Spanish', es:'español'}, {en:'English', es:'inglés'},
@@ -2048,7 +2058,7 @@ const DATA = {
 // STORAGE
 // =============================================================================
 const STORAGE_KEY = 'jason-spanish-app-v1';
-const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','numbers','placeAction','dialogue','recognition','house','city','clock','errands'];
+const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','numbers','placeAction','dialogue','recognition','house','city','clock','errands','serEstar','gustar','connectorJoin','agreement','plurals'];
 
 // Use null-prototype objects so keys like "constructor", "toString", etc.
 // don't collide with Object.prototype properties.
@@ -2310,7 +2320,7 @@ document.getElementById('back-btn').addEventListener('click', () => navigateTo('
 // HOME VIEW
 // =============================================================================
 // Bump this whenever you push, so the live site shows which build is deployed.
-const APP_VERSION = 'v2026.07.20-1';
+const APP_VERSION = 'v2026.07.20-3';
 
 function renderHome() {
   let totalC = 0, totalI = 0;
@@ -2334,7 +2344,7 @@ function renderHome() {
       </div>
     </div>
     <div class="games-grid">
-      ${Object.keys(Games).map(key => {
+      ${Object.keys(Games).filter(key => !Games[key].hidden).map(key => {
         const g = Games[key];
         const s = gameAggregateStats(key);
         const a = s.total > 0 ? Math.round((s.correct/s.total)*100) + '% • ' + s.total + ' attempts' : 'Not started yet';
@@ -3388,6 +3398,7 @@ Games.numbers = {
 Games.placeAction = {
   name: 'Place Match',
   description: "Pick the places where each verb fits",
+  hidden: true, // Retired: superseded by Errands (character + city scene). Kept for stats/history.
   state: { awaitingNext: false, current: null, selected: new Set(), shown: [] },
 
   init() {
@@ -4827,6 +4838,341 @@ document.addEventListener('click', (e) => {
     }
   }
 });
+
+// =============================================================================
+// GRAMMAR HELPERS (shared)
+// =============================================================================
+
+// Spanish pluralisation: vowel +s; -z → -ces; accented final syllable loses the
+// accent and takes -es (canción → canciones); other consonants +es.
+function pluralizeWord(w) {
+  const last = w.slice(-1);
+  if ('aeiouáéíóú'.includes(last)) return w + 's';
+  if (last === 'z') return w.slice(0, -1) + 'ces';
+  const two = w.slice(-2);
+  const map = { 'ón':'ones', 'ín':'ines', 'án':'anes', 'én':'enes', 'ún':'unes', 'és':'eses' };
+  if (map[two]) return w.slice(0, -2) + map[two];
+  return w + 'es';
+}
+
+// Adjective agreement. -o adjectives change for gender; -e / consonant adjectives
+// only change for number. Plural via pluralizeWord.
+function agreeAdjective(base, fem, plural) {
+  let s = base;
+  if (base.endsWith('o')) s = fem ? base.slice(0, -1) + 'a' : base;
+  return plural ? pluralizeWord(s) : s;
+}
+
+// =============================================================================
+// MULTIPLE-CHOICE GAME FACTORY
+// =============================================================================
+// cfg: { key, name, description, ask, generate() -> {prompt, sub, options:[{label,correct}], explain, itemKey}, weak? }
+function makeChoiceGame(cfg) {
+  return {
+    name: cfg.name,
+    description: cfg.description,
+    state: { awaitingNext: false, current: null, opts: [] },
+
+    init() {
+      this.state = { awaitingNext: false, current: null, opts: [] };
+      document.getElementById('main').innerHTML = `
+        <div class="prompt-card">
+          <div class="prompt-ask">${cfg.ask}</div>
+          <div class="prompt-main" id="cg-prompt">—</div>
+          <div class="prompt-meta" id="cg-sub"></div>
+        </div>
+        <div class="binary-options" id="cg-options"></div>
+        <div id="feedback-area"></div>
+        ${this.renderStatsBlock()}
+      `;
+      this.next();
+    },
+
+    renderStatsBlock() {
+      const s = gameAggregateStats(cfg.key);
+      const acc = s.total > 0 ? Math.round((s.correct/s.total)*100) + '%' : '—';
+      let weak = '';
+      if (cfg.weak) {
+        const ws = weakSpotsForGame(cfg.key, it => `<span class="weak-spot">${cfg.weak(it.key)} (${Math.round(it.acc*100)}%)</span>`);
+        weak = `<div class="weak-spots-title">Tricky ones</div><div>${ws.length ? ws.join('') : (s.total>0?'None showing yet.':'None yet, keep going.')}</div>`;
+      }
+      return `<div class="game-stats" id="stats-block">
+        <div class="stats-row"><span>Attempts</span><strong>${s.total}</strong></div>
+        <div class="stats-row"><span>Accuracy</span><strong>${acc}</strong></div>
+        ${weak}
+      </div>`;
+    },
+
+    refreshStatsBlock() {
+      const b = document.getElementById('stats-block');
+      if (b) b.outerHTML = this.renderStatsBlock();
+    },
+
+    next() {
+      const item = cfg.generate.call(this);
+      this.state.current = item;
+      document.getElementById('cg-prompt').innerHTML = item.prompt;
+      document.getElementById('cg-sub').innerHTML = item.sub || '';
+      const opts = shuffle(item.options.slice());
+      this.state.opts = opts;
+      const box = document.getElementById('cg-options');
+      box.innerHTML = opts.map((o, i) => `<button class="option-btn" data-i="${i}">${o.label}</button>`).join('');
+      box.querySelectorAll('[data-i]').forEach(b => b.addEventListener('click', () => this.check(opts[+b.dataset.i], b)));
+      document.getElementById('feedback-area').innerHTML = '';
+      this.state.awaitingNext = false;
+    },
+
+    check(opt, btn) {
+      if (this.state.awaitingNext) return;
+      const it = this.state.current;
+      const key = it.itemKey;
+      const correctLabel = (this.state.opts.find(o => o.correct) || {}).label;
+      let fb;
+      if (opt.correct) {
+        recordResult(cfg.key, key, true);
+        fb = `<div class="feedback correct">✓ Correct.${it.explain ? ' ' + it.explain : ''}</div>`;
+      } else {
+        recordResult(cfg.key, key, false);
+        fb = `<div class="feedback incorrect">✗ It's <strong>${correctLabel}</strong>.${it.explain ? ' ' + it.explain : ''}</div>`;
+      }
+      document.querySelectorAll('#cg-options .option-btn').forEach(b => {
+        b.disabled = true;
+        const o = this.state.opts[+b.dataset.i];
+        if (o.correct) b.classList.add('correct');
+        else if (b === btn) b.classList.add('incorrect');
+      });
+      document.getElementById('feedback-area').innerHTML = fb +
+        `<div style="margin-top:0.5rem;"><button class="primary" id="cg-next">Next</button></div>`;
+      document.getElementById('cg-next').addEventListener('click', () => { this.next(); this.refreshStatsBlock(); });
+      this.state.awaitingNext = true;
+    }
+  };
+}
+
+// =============================================================================
+// DATA + GAMES: SER/ESTAR, GUSTAR, CONNECTORS, AGREEMENT, PLURALS
+// =============================================================================
+
+const SER_ESTAR = [
+  {en:'Madrid is the capital of Spain.', es:'Madrid ___ la capital de España.', correct:'es', other:'está', why:'Ser is for identity and permanent facts.'},
+  {en:'The chocolate is on the table.', es:'El chocolate ___ sobre la mesa.', correct:'está', other:'es', why:'Estar is for location, where something is.'},
+  {en:'They are very nervous before the exam.', es:'Ellos ___ muy nerviosos antes del examen.', correct:'están', other:'son', why:'Estar is for temporary emotions and states.'},
+  {en:'My sister is very friendly.', es:'Mi hermana ___ muy simpática.', correct:'es', other:'está', why:'Ser is for personality and inherent traits.'},
+  {en:'We are teachers.', es:'Nosotros ___ profesores.', correct:'somos', other:'estamos', why:'Ser is for jobs and profession.'},
+  {en:'Today is Monday.', es:'Hoy ___ lunes.', correct:'es', other:'está', why:'Ser is for days, dates and time.'},
+  {en:'The sky is clear.', es:'El cielo ___ despejado.', correct:'está', other:'es', why:'Estar is for current weather and conditions.'},
+  {en:'I am tired.', es:'Yo ___ cansado.', correct:'estoy', other:'soy', why:'Estar is for how you feel right now.'},
+  {en:'The house is big.', es:'La casa ___ grande.', correct:'es', other:'está', why:'Ser is for inherent physical description.'},
+  {en:'Where is the bathroom?', es:'¿Dónde ___ el baño?', correct:'está', other:'es', why:'Estar is for location.'},
+  {en:'She is Spanish.', es:'Ella ___ española.', correct:'es', other:'está', why:'Ser is for nationality.'},
+  {en:'The soup is hot.', es:'La sopa ___ caliente.', correct:'está', other:'es', why:'Estar for a temporary state, its heat right now.'},
+  {en:'My father is a doctor.', es:'Mi padre ___ médico.', correct:'es', other:'está', why:'Ser is for profession.'},
+  {en:'We are at home.', es:'Nosotros ___ en casa.', correct:'estamos', other:'somos', why:'Estar is for location.'},
+  {en:'The children are asleep.', es:'Los niños ___ dormidos.', correct:'están', other:'son', why:'Estar is for a temporary condition.'},
+  {en:'This coffee tastes good.', es:'Este café ___ bueno.', correct:'está', other:'es', why:'Estar bueno = tastes good now; ser bueno = good quality in general.'},
+  {en:'Ana is a cheerful person (by nature).', es:'Ana ___ alegre.', correct:'es', other:'está', why:'Ser for a permanent trait; estar alegre = happy right this moment.'}
+];
+
+Games.serEstar = makeChoiceGame({
+  key: 'serEstar', name: 'Ser or Estar', description: 'Choose the right "to be"',
+  ask: 'Ser or estar?', weak: k => k.split('|')[0],
+  generate() {
+    const it = pickSmart('serEstar', SER_ESTAR, s => s.es).item;
+    return {
+      prompt: it.es.replace('___', '<strong>___</strong>'),
+      sub: it.en,
+      options: [{ label: it.correct, correct: true }, { label: it.other, correct: false }],
+      explain: it.why,
+      itemKey: it.es
+    };
+  }
+});
+
+const GUSTAR_PRON = [
+  {es:'Me', en:'I', v:'like'}, {es:'Te', en:'You', v:'like'}, {es:'Le', en:'He/She', v:'likes'},
+  {es:'Nos', en:'We', v:'like'}, {es:'Os', en:'You all', v:'like'}, {es:'Les', en:'They', v:'like'}
+];
+const GUSTAR_THINGS = [
+  {es:'el café', en:'coffee', pl:false}, {es:'la música', en:'music', pl:false},
+  {es:'el chocolate', en:'chocolate', pl:false}, {es:'la playa', en:'the beach', pl:false},
+  {es:'este libro', en:'this book', pl:false},
+  {es:'los perros', en:'dogs', pl:true}, {es:'los animales', en:'animals', pl:true},
+  {es:'las fiestas', en:'parties', pl:true}, {es:'los libros', en:'books', pl:true},
+  {es:'las verduras', en:'vegetables', pl:true}
+];
+
+Games.gustar = makeChoiceGame({
+  key: 'gustar', name: 'Me Gusta / Gustan', description: 'Gustar agreement: gusta or gustan?',
+  ask: 'gusta or gustan?',
+  generate() {
+    if (!this._combos) {
+      this._combos = [];
+      GUSTAR_PRON.forEach(p => GUSTAR_THINGS.forEach(t => this._combos.push({ p, t })));
+    }
+    const c = pickSmart('gustar', this._combos, x => x.p.es + ':' + x.t.es).item;
+    const verb = c.t.pl ? 'gustan' : 'gusta';
+    return {
+      prompt: `${c.p.es} <strong>___</strong> ${c.t.es}`,
+      sub: `${c.p.en} ${c.p.v} ${c.t.en}`,
+      options: [{ label: 'gusta', correct: !c.t.pl }, { label: 'gustan', correct: c.t.pl }],
+      explain: `"${c.t.es}" is ${c.t.pl ? 'plural, so use gustan' : 'singular, so use gusta'}.`,
+      itemKey: c.p.es + ':' + c.t.es
+    };
+  }
+});
+
+const CONNECTOR_ITEMS = [
+  {a:'Hace frío', b:'voy a llevar un abrigo', ans:'entonces', en:"It's cold, so I'll wear a coat."},
+  {a:'Estudio español', b:'quiero viajar por España', ans:'porque', en:'I study Spanish because I want to travel around Spain.'},
+  {a:'Me gusta la playa', b:'mi hermano prefiere la montaña', ans:'pero', en:'I like the beach, but my brother prefers the mountains.'},
+  {a:'No tengo coche', b:'no tengo bicicleta', ans:'tampoco', en:"I don't have a car, nor do I have a bicycle."},
+  {a:'Primero desayuno', b:'voy al trabajo', ans:'después', en:'First I have breakfast, then I go to work.'},
+  {a:'Estoy cansado', b:'voy a salir', ans:'sin embargo', en:"I'm tired; however, I'm going to go out."},
+  {a:'Quiero comprar un coche', b:'no tengo suficiente dinero', ans:'pero', en:"I want to buy a car, but I don't have enough money."},
+  {a:'Llegué tarde', b:'perdí el tren', ans:'entonces', en:'I arrived late, so I missed the train.'},
+  {a:'Me gusta leer', b:'escribir', ans:'y', en:'I like reading and writing.'},
+  {a:'No hablo alemán', b:'no hablo italiano', ans:'tampoco', en:"I don't speak German, nor Italian."},
+  {a:'Estoy en casa', b:'llueve mucho', ans:'porque', en:"I'm at home because it's raining a lot."},
+  {a:'María estudia francés', b:'estudia inglés', ans:'también', en:'María studies French and also studies English.'},
+  {a:'Quiero ir a la fiesta', b:'tengo que trabajar', ans:'aunque', en:'I want to go to the party although I have to work.'}
+];
+const CONNECTOR_POOL = ['y','pero','porque','aunque','entonces','también','tampoco','después','sin embargo'];
+
+Games.connectorJoin = makeChoiceGame({
+  key: 'connectorJoin', name: 'Connect It', description: 'Join the clauses with the right connector',
+  ask: 'Which connecting word fits?',
+  generate() {
+    const it = pickSmart('connectorJoin', CONNECTOR_ITEMS, s => s.a + '|' + s.b).item;
+    const distractors = shuffle(CONNECTOR_POOL.filter(c => c !== it.ans)).slice(0, 3);
+    const options = [{ label: it.ans, correct: true }].concat(distractors.map(d => ({ label: d, correct: false })));
+    return {
+      prompt: `${it.a} <strong>___</strong> ${it.b}.`,
+      sub: it.en,
+      options,
+      itemKey: it.a + '|' + it.b
+    };
+  }
+});
+
+const AGREE_ADJ = [
+  {base:'rojo', hex:'#c0392b'}, {base:'blanco', hex:'#f4f1ea'}, {base:'negro', hex:'#2b2b2b'},
+  {base:'amarillo', hex:'#f1c40f'}, {base:'verde', hex:'#27ae60'}, {base:'azul', hex:'#2980b9'},
+  {base:'gris', hex:'#95a5a6'}, {base:'marrón', hex:'#8b5a2b'},
+  {base:'grande'}, {base:'pequeño'}, {base:'alto'}, {base:'bonito'}, {base:'largo'}
+];
+
+Games.agreement = makeChoiceGame({
+  key: 'agreement', name: 'Adjective Agreement', description: 'Match the adjective to the noun',
+  ask: 'Choose the correct form',
+  generate() {
+    const noun = pickSmart('agreement', DATA.articleNouns, n => n.noun).item;
+    const fem = noun.article === 'la';
+    const plural = Math.random() < 0.5;
+    const adj = AGREE_ADJ[Math.floor(Math.random() * AGREE_ADJ.length)];
+    const displayNoun = plural ? pluralizeWord(noun.noun) : noun.noun;
+    const art = plural ? (fem ? 'las' : 'los') : (fem ? 'la' : 'el');
+    const correct = agreeAdjective(adj.base, fem, plural);
+    const forms = new Set([
+      agreeAdjective(adj.base, false, false), agreeAdjective(adj.base, true, false),
+      agreeAdjective(adj.base, false, true), agreeAdjective(adj.base, true, true)
+    ]);
+    const options = [...forms].map(f => ({ label: f, correct: f === correct }));
+    const swatch = adj.hex ? `<span class="adj-swatch" style="background:${adj.hex}"></span>` : '';
+    return {
+      prompt: `${art} ${displayNoun} ${swatch}`,
+      sub: `adjective: <em>${adj.base}</em>`,
+      options,
+      explain: `"${displayNoun}" is ${fem ? 'feminine' : 'masculine'} ${plural ? 'plural' : 'singular'}.`,
+      itemKey: noun.noun + ':' + adj.base + ':' + (plural ? 'pl' : 'sg')
+    };
+  }
+});
+
+// PLURALS: type the plural. Curated so the rules stay clean.
+const PLURAL_NOUNS = [
+  {es:'casa', en:'house'}, {es:'perro', en:'dog'}, {es:'gato', en:'cat'}, {es:'coche', en:'car'},
+  {es:'mesa', en:'table'}, {es:'silla', en:'chair'}, {es:'libro', en:'book'}, {es:'ventana', en:'window'},
+  {es:'reloj', en:'clock'}, {es:'ciudad', en:'city'}, {es:'animal', en:'animal'}, {es:'hotel', en:'hotel'},
+  {es:'papel', en:'paper'}, {es:'árbol', en:'tree'}, {es:'color', en:'colour'}, {es:'flor', en:'flower'},
+  {es:'lápiz', en:'pencil'}, {es:'pez', en:'fish'}, {es:'luz', en:'light'}, {es:'voz', en:'voice'},
+  {es:'canción', en:'song'}, {es:'jardín', en:'garden'}, {es:'café', en:'coffee'}, {es:'sofá', en:'sofa'}
+];
+
+Games.plurals = {
+  name: 'Make it Plural',
+  description: 'Type the plural of the noun',
+  state: { awaitingNext: false, current: null },
+
+  init() {
+    this.state = { awaitingNext: false, current: null };
+    document.getElementById('main').innerHTML = `
+      <div class="prompt-card">
+        <div class="prompt-ask">Make it plural:</div>
+        <div class="prompt-main" id="pl-word">—</div>
+        <div class="prompt-meta" id="pl-en"></div>
+      </div>
+      <div class="input-row">
+        <input type="text" id="pl-input" placeholder="Type the plural" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="primary" id="pl-submit">Check</button>
+      </div>
+      ${accentBar('pl-input')}
+      <div id="feedback-area"></div>
+      ${this.renderStatsBlock()}
+    `;
+    wireAccentBar(document.getElementById('main'));
+    document.getElementById('pl-submit').addEventListener('click', () => this.check());
+    document.getElementById('pl-input').addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); this.check(); }});
+    this.next();
+  },
+
+  renderStatsBlock() {
+    const s = gameAggregateStats('plurals');
+    const acc = s.total > 0 ? Math.round((s.correct/s.total)*100) + '%' : '—';
+    return `<div class="game-stats" id="stats-block">
+      <div class="stats-row"><span>Attempts</span><strong>${s.total}</strong></div>
+      <div class="stats-row"><span>Accuracy</span><strong>${acc}</strong></div>
+    </div>`;
+  },
+
+  refreshStatsBlock() {
+    const b = document.getElementById('stats-block');
+    if (b) b.outerHTML = this.renderStatsBlock();
+  },
+
+  next() {
+    const w = pickSmart('plurals', PLURAL_NOUNS, n => n.es).item;
+    this.state.current = w;
+    document.getElementById('pl-word').textContent = w.es;
+    document.getElementById('pl-en').textContent = w.en;
+    const input = document.getElementById('pl-input');
+    input.value = ''; input.focus();
+    document.getElementById('feedback-area').innerHTML = '';
+    document.getElementById('pl-submit').textContent = 'Check';
+    this.state.awaitingNext = false;
+  },
+
+  check() {
+    if (this.state.awaitingNext) { this.next(); this.refreshStatsBlock(); return; }
+    const val = document.getElementById('pl-input').value.trim();
+    if (!val) return;
+    const w = this.state.current;
+    const expected = pluralizeWord(w.es);
+    let fb;
+    if (val.toLowerCase() === expected.toLowerCase()) {
+      recordResult('plurals', w.es, true);
+      fb = `<div class="feedback correct">✓ <strong>${expected}</strong></div>`;
+    } else if (normalize(val) === normalize(expected)) {
+      recordResult('plurals', w.es, true);
+      fb = `<div class="feedback almost">Nearly, watch the accent: <strong>${expected}</strong>.</div>`;
+    } else {
+      recordResult('plurals', w.es, false);
+      fb = `<div class="feedback incorrect">✗ The plural is <strong>${expected}</strong>. You wrote "<em>${val}</em>".</div>`;
+    }
+    document.getElementById('feedback-area').innerHTML = fb;
+    document.getElementById('pl-submit').textContent = 'Next';
+    this.state.awaitingNext = true;
+  }
+};
 
 async function init() {
   await loadProgress();

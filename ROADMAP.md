@@ -144,6 +144,17 @@ recognisable. No text, no labels, no numbers.
 
 ## Recently shipped (context)
 
+- **Five new games + Place Match retired (July 2026)** — added a `makeChoiceGame`
+  multiple-choice factory and shared grammar helpers (`pluralizeWord`,
+  `agreeAdjective`). New games: **Ser or Estar** (choose the right "to be", with the
+  es bueno/está bueno nuance), **Me Gusta / Gustan** (gustar agreement, generated from
+  pronoun×thing combos), **Connect It** (pick the connector that joins two clauses,
+  from the Palabras conectoras exercise), **Adjective Agreement** (noun + code-drawn
+  colour swatch, pick the agreed form; gender+number), **Make it Plural** (type the
+  plural, tolerant, accent bar). **Place Match** retired via `hidden:true` (superseded
+  by Errands; kept in GAME_KEYS for stats). Still to do from the brainstorm: the
+  **sorting/categorisation** engine (drag items into buckets), and the audio/listening
+  pipeline (PINNED, needs a paid TTS sub).
 - **Palabras conectoras + Ser y Estar (July 2026 lessons)** — captured two new Drive
   docs. Added a **connectors** vocab topic (y, pero, porque, aunque, entonces,
   también, tampoco, después, ahora, todavía, sin embargo) with a `TYPE_BY_TOPIC`
