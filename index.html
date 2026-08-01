@@ -857,7 +857,10 @@ const DATA = {
       {en:'bus stop', es:'parada de autobús'}, {en:'clinic', es:'clínica'},
       {en:'bullring', es:'plaza de toros'}, {en:'stadium', es:'estadio'},
       {en:'bakery', es:'panadería'},
-      {en:'electronics shop', es:'tienda de electrónicos'}
+      {en:'electronics shop', es:'tienda de electrónicos'},
+      // From Review 4 (Aug 2026)
+      {en:'greengrocer', es:'frutería'}, {en:'swimming pool', es:'piscina'},
+      {en:'zoo', es:'zoo'}
     ],
     cityObjects: [
       {en:'traffic light', es:'semáforo'}, {en:'streetlight', es:'farola'},
@@ -1007,7 +1010,10 @@ const DATA = {
       // Added from the En La Casa lesson (July 2026)
       {en:'ergonomic chair', es:'silla ergonómica'}, {en:'single bed', es:'cama individual'},
       {en:'floor lamp', es:'lámpara de pie'}, {en:'coffee table', es:'mesa baja'},
-      {en:'worktop', es:'encimera'}, {en:'toys', es:'juguetes'}
+      {en:'worktop', es:'encimera'}, {en:'toys', es:'juguetes'},
+      // From Review 4 (Aug 2026)
+      {en:'dishwasher', es:'lavavajillas'}, {en:'knife', es:'cuchillo'},
+      {en:'fork', es:'tenedor'}, {en:'plate', es:'plato'}
     ],
     garaje: [
       {en:'car', es:'coche'}, {en:'motorbike', es:'moto'},
@@ -1049,6 +1055,14 @@ const DATA = {
       {en:'neither / not either', es:'tampoco'}, {en:'afterwards / then', es:'después'},
       {en:'now', es:'ahora'}, {en:'still / yet', es:'todavía'},
       {en:'however', es:'sin embargo'}
+    ],
+    // Question words (Preguntando lesson, Aug 2026)
+    questions: [
+      {en:'what?', es:'¿qué?'}, {en:'who?', es:'¿quién?'},
+      {en:'how?', es:'¿cómo?'}, {en:'where?', es:'¿dónde?'},
+      {en:'when?', es:'¿cuándo?'}, {en:'why?', es:'¿por qué?'},
+      {en:'how many?', es:'¿cuántos?'}, {en:'how much?', es:'¿cuánto?'},
+      {en:'which?', es:'¿cuál?'}
     ]
   },
 
@@ -1914,7 +1928,16 @@ const DATA = {
     {en:'The chocolate is on the table.', es:'El chocolate está sobre la mesa.', focus:'está'},
     {en:'Today the sky is completely clear.', es:'Hoy el cielo está completamente despejado.', focus:'está'},
     {en:'They are very nervous before the exam.', es:'Ellos están muy nerviosos antes del examen.', focus:'están'},
-    {en:'Yesterday we were at home all day.', es:'Ayer estuvimos en casa todo el día.', focus:'estuvimos'}
+    {en:'Yesterday we were at home all day.', es:'Ayer estuvimos en casa todo el día.', focus:'estuvimos'},
+    // === Questions (Preguntando lesson, Aug 2026) ===
+    {en:'Where do you live?', es:'¿Dónde vives?', focus:'Dónde'},
+    {en:'How old are you?', es:'¿Cuántos años tienes?', focus:'Cuántos'},
+    {en:'Why do you study Spanish?', es:'¿Por qué estudias español?', focus:'Por qué'},
+    {en:"What's your favourite food?", es:'¿Cuál es tu comida favorita?', focus:'Cuál'},
+    {en:'How are you today?', es:'¿Cómo estás hoy?', focus:'Cómo'},
+    {en:'When is your birthday?', es:'¿Cuándo es tu cumpleaños?', focus:'Cuándo'},
+    {en:'Who cooks in your house?', es:'¿Quién cocina en tu casa?', focus:'Quién'},
+    {en:'What do you do at the weekend?', es:'¿Qué haces los fines de semana?', focus:'Qué'}
   ],
 
   // PLACES & ACTIONS: from "Actions in different places" section.
@@ -2329,7 +2352,7 @@ document.getElementById('back-btn').addEventListener('click', () => navigateTo('
 // HOME VIEW
 // =============================================================================
 // Bump this whenever you push, so the live site shows which build is deployed.
-const APP_VERSION = 'v2026.07.20-4';
+const APP_VERSION = 'v2026.08.01-1';
 
 function renderHome() {
   let totalC = 0, totalI = 0;
@@ -2516,6 +2539,9 @@ Games.verbs = {
   },
 
   catNote(verb) {
+    // adquirir / inquirir are grouped under stem-ie for filtering but are actually
+    // i→ie (adquiero, inquiero), not e→ie.
+    if (verb.inf === 'adquirir' || verb.inf === 'inquirir') return 'I→IE stem change: the stressed i becomes ie.';
     const m = {
       'reg-ar': 'Regular -AR verb.',
       'reg-er': 'Regular -ER verb.',
@@ -3855,7 +3881,7 @@ Games.recognition = {
     weather: 'phrase', timeOfDay: 'phrase', greetings: 'phrase',
     adjectives: 'adjective', colours: 'adjective',
     emotions: 'adjective', flavours: 'adjective', nationalities: 'adjective',
-    connectors: 'word'
+    connectors: 'word', questions: 'phrase'
   },
 
   _pool: null,
