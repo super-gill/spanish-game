@@ -1063,6 +1063,14 @@ const DATA = {
       {en:'when?', es:'¿cuándo?'}, {en:'why?', es:'¿por qué?'},
       {en:'how many?', es:'¿cuántos?'}, {en:'how much?', es:'¿cuánto?'},
       {en:'which?', es:'¿cuál?'}
+    ],
+    // Possessive adjectives (Adjetivos Posesivos lesson, Aug 2026)
+    possessives: [
+      {en:'my (one thing)', es:'mi'}, {en:'my (several)', es:'mis'},
+      {en:'your (one thing)', es:'tu'}, {en:'your (several)', es:'tus'},
+      {en:'his/her/their (one)', es:'su'}, {en:'his/her/their (several)', es:'sus'},
+      {en:'our (m)', es:'nuestro'}, {en:'our (f)', es:'nuestra'},
+      {en:'your-all (m)', es:'vuestro'}, {en:'your-all (f)', es:'vuestra'}
     ]
   },
 
@@ -1937,7 +1945,16 @@ const DATA = {
     {en:'How are you today?', es:'¿Cómo estás hoy?', focus:'Cómo'},
     {en:'When is your birthday?', es:'¿Cuándo es tu cumpleaños?', focus:'Cuándo'},
     {en:'Who cooks in your house?', es:'¿Quién cocina en tu casa?', focus:'Quién'},
-    {en:'What do you do at the weekend?', es:'¿Qué haces los fines de semana?', focus:'Qué'}
+    {en:'What do you do at the weekend?', es:'¿Qué haces los fines de semana?', focus:'Qué'},
+    // === Possessive adjectives (Adjetivos Posesivos lesson, Aug 2026) ===
+    {en:'My house is very big.', es:'Mi casa es muy grande.', focus:'Mi'},
+    {en:'My keys are on the table.', es:'Mis llaves están en la mesa.', focus:'Mis'},
+    {en:'Where is your car?', es:'¿Dónde está tu coche?', focus:'tu'},
+    {en:'His friends live in Madrid.', es:'Sus amigos viven en Madrid.', focus:'Sus'},
+    {en:'Our city is beautiful.', es:'Nuestra ciudad es bonita.', focus:'Nuestra'},
+    {en:'You are selling your car.', es:'Vosotros vendéis vuestro coche.', focus:'vuestro'},
+    {en:'Her brother works here.', es:'Su hermano trabaja aquí.', focus:'Su'},
+    {en:'Our parents live here.', es:'Nuestros padres viven aquí.', focus:'Nuestros'}
   ],
 
   // PLACES & ACTIONS: from "Actions in different places" section.
@@ -2090,7 +2107,7 @@ const DATA = {
 // STORAGE
 // =============================================================================
 const STORAGE_KEY = 'jason-spanish-app-v1';
-const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','numbers','placeAction','dialogue','recognition','house','city','clock','errands','serEstar','gustar','connectorJoin','agreement','plurals','sorting'];
+const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','numbers','placeAction','dialogue','recognition','house','city','clock','errands','serEstar','gustar','connectorJoin','agreement','plurals','sorting','questionWords','possessive','oddOne'];
 
 // Use null-prototype objects so keys like "constructor", "toString", etc.
 // don't collide with Object.prototype properties.
@@ -2352,7 +2369,7 @@ document.getElementById('back-btn').addEventListener('click', () => navigateTo('
 // HOME VIEW
 // =============================================================================
 // Bump this whenever you push, so the live site shows which build is deployed.
-const APP_VERSION = 'v2026.08.01-1';
+const APP_VERSION = 'v2026.08.11-3';
 
 function renderHome() {
   let totalC = 0, totalI = 0;
@@ -2469,7 +2486,7 @@ const Games = {};
 Games.verbs = {
   name: 'Verb Drill',
   description: 'Conjugation across persons and tenses',
-  state: { mode: 'all', diff: 'easy', awaitingNext: false, currentCombo: null, attempts: 0, recorded: false, revealed: false, timer: null },
+  state: { tenses: { present: true, past: true, conditional: true }, regularOnly: false, weakOnly: false, diff: 'easy', awaitingNext: false, currentCombo: null, attempts: 0, recorded: false, revealed: false, timer: null },
 
   PERSONS: ['yo','tu','el','nos','vos','ellos'],
   PERSON_LABELS: {yo:'yo (I)', tu:'tú (you)', el:'él/ella (he/she)', nos:'nosotros (we)', vos:'vosotros (you all)', ellos:'ellos (they)'},
@@ -2477,16 +2494,25 @@ Games.verbs = {
   CAT_LABELS: {'reg-ar':'regular -AR','reg-er':'regular -ER','reg-ir':'regular -IR','stem-ie':'E→IE stem','stem-ue':'O→UE stem','stem-i':'E→I stem','irreg':'irregular','reflexive':'reflexive'},
 
   init() {
-    this.state = { mode: 'all', diff: this.state.diff || 'easy', awaitingNext: false, currentCombo: null, attempts: 0, recorded: false, revealed: false, timer: null };
+    this.state = {
+      tenses: this.state.tenses || { present: true, past: true, conditional: true },
+      regularOnly: this.state.regularOnly || false,
+      weakOnly: this.state.weakOnly || false,
+      diff: this.state.diff || 'easy',
+      awaitingNext: false, currentCombo: null, attempts: 0, recorded: false, revealed: false, timer: null
+    };
     const main = document.getElementById('main');
     main.innerHTML = `
       <div class="controls">
-        <button class="filter-btn active" data-mode="all">All</button>
-        <button class="filter-btn" data-mode="present">Present only</button>
-        <button class="filter-btn" data-mode="past">Past only</button>
-        <button class="filter-btn" data-mode="conditional">Conditional only</button>
-        <button class="filter-btn" data-mode="regular">Regular only</button>
-        <button class="filter-btn" data-mode="weak">Weak spots</button>
+        <span class="controls-caption">Tenses</span>
+        <button class="filter-btn" data-tense="present">Present</button>
+        <button class="filter-btn" data-tense="past">Past</button>
+        <button class="filter-btn" data-tense="conditional">Conditional</button>
+      </div>
+      <div class="controls">
+        <span class="controls-caption">Filter</span>
+        <button class="filter-btn" data-filter="regular">Regular verbs only</button>
+        <button class="filter-btn" data-filter="weak">Weak spots only</button>
       </div>
       <div class="controls">
         <span class="controls-caption">Difficulty</span>
@@ -2510,12 +2536,14 @@ Games.verbs = {
       <div id="feedback-area"></div>
       ${this.renderStatsBlock()}
     `;
-    main.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => this.setMode(b.dataset.mode)));
+    main.querySelectorAll('[data-tense]').forEach(b => b.addEventListener('click', () => this.toggleTense(b.dataset.tense)));
+    main.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => this.toggleFilter(b.dataset.filter)));
     main.querySelectorAll('[data-diff]').forEach(b => b.addEventListener('click', () => this.setDiff(b.dataset.diff)));
     wireAccentBar(main);
     document.getElementById('submit-btn').addEventListener('click', () => this.check());
     document.getElementById('answer-input').addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); this.check(); }});
     this.syncDiff();
+    this.syncControls();
     this.next();
   },
 
@@ -2575,23 +2603,38 @@ Games.verbs = {
     if (block) block.outerHTML = this.renderStatsBlock();
   },
 
-  setMode(mode) {
-    this.state.mode = mode;
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  syncControls() {
+    document.querySelectorAll('[data-tense]').forEach(b => b.classList.toggle('active', !!this.state.tenses[b.dataset.tense]));
+    document.querySelectorAll('[data-filter]').forEach(b => {
+      const on = b.dataset.filter === 'regular' ? this.state.regularOnly : this.state.weakOnly;
+      b.classList.toggle('active', on);
+    });
+  },
+
+  toggleTense(t) {
+    const on = this.state.tenses;
+    const enabled = Object.keys(on).filter(k => on[k]);
+    if (on[t] && enabled.length === 1) return; // keep at least one tense on
+    on[t] = !on[t];
+    this.syncControls();
+    this.next();
+  },
+
+  toggleFilter(f) {
+    if (f === 'regular') this.state.regularOnly = !this.state.regularOnly;
+    else if (f === 'weak') this.state.weakOnly = !this.state.weakOnly;
+    this.syncControls();
     this.next();
   },
 
   getActiveTenses() {
-    if (this.state.mode === 'present') return ['present'];
-    if (this.state.mode === 'past') return ['past'];
-    if (this.state.mode === 'conditional') return ['conditional'];
-    return ['present','past','conditional'];
+    return ['present','past','conditional'].filter(t => this.state.tenses[t]);
   },
 
   pick() {
     const activeTenses = this.getActiveTenses();
     let pool = DATA.verbs.filter(v => activeTenses.some(t => v.conj[t]));
-    if (this.state.mode === 'regular') pool = pool.filter(v => v.cat.startsWith('reg-'));
+    if (this.state.regularOnly) pool = pool.filter(v => v.cat.startsWith('reg-'));
 
     const combos = [];
     pool.forEach(verb => {
@@ -2601,7 +2644,7 @@ Games.verbs = {
       });
     });
 
-    if (this.state.mode === 'weak') {
+    if (this.state.weakOnly) {
       const weakCombos = combos.filter(c => {
         const k = `${c.verb.inf}:${c.person}:${c.tense}`;
         const s = progress.verbs[k];
@@ -3881,7 +3924,7 @@ Games.recognition = {
     weather: 'phrase', timeOfDay: 'phrase', greetings: 'phrase',
     adjectives: 'adjective', colours: 'adjective',
     emotions: 'adjective', flavours: 'adjective', nationalities: 'adjective',
-    connectors: 'word', questions: 'phrase'
+    connectors: 'word', questions: 'phrase', possessives: 'word'
   },
 
   _pool: null,
@@ -5336,6 +5379,106 @@ Games.sorting = {
     document.getElementById('sort-check').textContent = 'Next';
   }
 };
+
+// =============================================================================
+// QUESTION WORDS
+// =============================================================================
+const QW_ITEMS = [
+  {es:'¿___ vives?', ans:'Dónde', en:'Where do you live?'},
+  {es:'¿___ años tienes?', ans:'Cuántos', en:'How old are you?'},
+  {es:'¿___ estudias español?', ans:'Por qué', en:'Why do you study Spanish?'},
+  {es:'¿___ es tu comida favorita?', ans:'Cuál', en:"What's your favourite food?"},
+  {es:'¿___ estás hoy?', ans:'Cómo', en:'How are you today?'},
+  {es:'¿___ es tu cumpleaños?', ans:'Cuándo', en:'When is your birthday?'},
+  {es:'¿___ cocina en tu casa?', ans:'Quién', en:'Who cooks in your house?'},
+  {es:'¿___ haces los fines de semana?', ans:'Qué', en:'What do you do at the weekend?'},
+  {es:'¿___ está el baño?', ans:'Dónde', en:'Where is the bathroom?'},
+  {es:'¿___ hermanos tienes?', ans:'Cuántos', en:'How many siblings do you have?'},
+  {es:'¿___ vas al trabajo?', ans:'Cómo', en:'How do you get to work?'},
+  {es:'¿___ prefieres, té o café?', ans:'Cuál', en:'Which do you prefer, tea or coffee?'},
+  {es:'¿___ cuesta?', ans:'Cuánto', en:'How much does it cost?'},
+  {es:'¿___ es esa chica?', ans:'Quién', en:'Who is that girl?'}
+];
+const QW_POOL = ['Qué','Quién','Cómo','Dónde','Cuándo','Cuál','Cuántos','Cuánto','Por qué'];
+
+Games.questionWords = makeChoiceGame({
+  key: 'questionWords', name: 'Question Words', description: 'Pick the right question word',
+  ask: 'Which question word fits?', weak: k => k,
+  generate() {
+    const it = pickSmart('questionWords', QW_ITEMS, s => s.es).item;
+    const distractors = shuffle(QW_POOL.filter(w => w !== it.ans)).slice(0, 3);
+    const options = [{ label: it.ans, correct: true }].concat(distractors.map(d => ({ label: d, correct: false })));
+    return { prompt: it.es.replace('___', '<strong>___</strong>'), sub: it.en, options, itemKey: it.es };
+  }
+});
+
+// =============================================================================
+// POSSESSIVES
+// =============================================================================
+const POSS_OWNERS = [
+  { en: 'my', kind: 'simple', sg: 'mi' },
+  { en: 'your', kind: 'simple', sg: 'tu' },
+  { en: 'his / her', kind: 'simple', sg: 'su' },
+  { en: 'their', kind: 'simple', sg: 'su' },
+  { en: 'our', kind: 'gendered', stem: 'nuestr' },
+  { en: 'your (you all)', kind: 'gendered', stem: 'vuestr' }
+];
+function possForm(o, fem, plural) {
+  if (o.kind === 'simple') return plural ? o.sg + 's' : o.sg;
+  const end = plural ? (fem ? 'as' : 'os') : (fem ? 'a' : 'o');
+  return o.stem + end;
+}
+
+Games.possessive = makeChoiceGame({
+  key: 'possessive', name: 'Possessives', description: 'Choose the correct possessive form',
+  ask: 'Which possessive fits?',
+  generate() {
+    const o = POSS_OWNERS[Math.floor(Math.random() * POSS_OWNERS.length)];
+    const noun = pickSmart('possessive', DATA.articleNouns, n => n.noun).item;
+    const fem = noun.article === 'la';
+    const plural = Math.random() < 0.5;
+    const displayNoun = plural ? pluralizeWord(noun.noun) : noun.noun;
+    const correct = possForm(o, fem, plural);
+    const opts = o.kind === 'simple' ? [o.sg, o.sg + 's'] : [o.stem + 'o', o.stem + 'a', o.stem + 'os', o.stem + 'as'];
+    const options = opts.map(f => ({ label: f, correct: f === correct }));
+    return {
+      prompt: `<strong>___</strong> ${displayNoun}`,
+      sub: `'${o.en}' — ${displayNoun} is ${fem ? 'feminine' : 'masculine'}, ${plural ? 'plural' : 'singular'}`,
+      options,
+      explain: o.kind === 'simple' ? 'mi, tu and su change only for number.' : 'nuestro and vuestro agree in gender and number.',
+      itemKey: o.en + ':' + (fem ? 'f' : 'm') + ':' + (plural ? 'pl' : 'sg')
+    };
+  }
+});
+
+// =============================================================================
+// ODD ONE OUT
+// =============================================================================
+const ODD_TOPICS = ['food', 'pets', 'city', 'family', 'jobs', 'colours', 'houseObjects', 'seasons'];
+const ODD_LABELS = { food: 'food', pets: 'animals', city: 'places', family: 'family', jobs: 'jobs', colours: 'colours', houseObjects: 'household objects', seasons: 'seasons' };
+
+Games.oddOne = makeChoiceGame({
+  key: 'oddOne', name: 'Odd One Out', description: "Tap the word that doesn't belong",
+  ask: "Which word doesn't belong?",
+  generate() {
+    const topics = ODD_TOPICS.filter(t => DATA.vocab[t] && DATA.vocab[t].length >= 4);
+    const home = topics[Math.floor(Math.random() * topics.length)];
+    let odd;
+    do { odd = topics[Math.floor(Math.random() * topics.length)]; } while (odd === home);
+    const homeWords = shuffle(DATA.vocab[home].slice()).slice(0, 3);
+    const homeEs = new Set(homeWords.map(w => w.es));
+    let oddWord, guard = 0;
+    do { oddWord = DATA.vocab[odd][Math.floor(Math.random() * DATA.vocab[odd].length)]; } while (homeEs.has(oddWord.es) && ++guard < 10);
+    const options = shuffle(homeWords.map(w => ({ label: w.es, correct: false })).concat([{ label: oddWord.es, correct: true }]));
+    return {
+      prompt: '',
+      sub: '',
+      options,
+      explain: `The others are all ${ODD_LABELS[home]}; ${oddWord.es} is ${ODD_LABELS[odd]}.`,
+      itemKey: home + ':' + oddWord.es
+    };
+  }
+});
 
 async function init() {
   await loadProgress();

@@ -144,6 +144,14 @@ recognisable. No text, no labels, no numbers.
 
 ## Recently shipped (context)
 
+- **Three more games (Aug 2026)** — via the `makeChoiceGame` factory, no assets:
+  **Question Words** (pick ¿qué/quién/dónde...? for a blanked question, from the
+  Preguntando lesson), **Possessives** (choose the agreed possessive for owner +
+  noun; mi/tu/su offer 2 options, nuestro/vuestro offer 4; uses `possForm`), and
+  **Odd One Out** (four words, tap the one from a different vocab topic). Roster is
+  now 21 playable games. Also captured: questions + possessives vocab topics and
+  sentences; Review-4 words (frutería, piscina, zoo, lavavajillas, cuchillo,
+  tenedor, plato); fixed the adquirir/inquirir note (i→ie, not e→ie).
 - **Five new games + Place Match retired (July 2026)** — added a `makeChoiceGame`
   multiple-choice factory and shared grammar helpers (`pluralizeWord`,
   `agreeAdjective`). New games: **Ser or Estar** (choose the right "to be", with the
