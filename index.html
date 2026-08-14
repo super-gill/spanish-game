@@ -2369,7 +2369,7 @@ document.getElementById('back-btn').addEventListener('click', () => navigateTo('
 // HOME VIEW
 // =============================================================================
 // Bump this whenever you push, so the live site shows which build is deployed.
-const APP_VERSION = 'v2026.08.11-3';
+const APP_VERSION = 'v2026.08.11-4';
 
 function renderHome() {
   let totalC = 0, totalI = 0;
@@ -5461,14 +5461,29 @@ Games.oddOne = makeChoiceGame({
   key: 'oddOne', name: 'Odd One Out', description: "Tap the word that doesn't belong",
   ask: "Which word doesn't belong?",
   generate() {
-    const topics = ODD_TOPICS.filter(t => DATA.vocab[t] && DATA.vocab[t].length >= 4);
+    // Build once: per-topic word lists with any word that appears in more than one
+    // topic removed. Cross-category words (e.g. naranja = fruit AND colour) make an
+    // ambiguous puzzle, so they're excluded entirely.
+    if (!this._pool) {
+      const count = Object.create(null);
+      ODD_TOPICS.forEach(t => (DATA.vocab[t] || []).forEach(w => {
+        const n = normalize(w.es); count[n] = (count[n] || 0) + 1;
+      }));
+      this._pool = {};
+      ODD_TOPICS.forEach(t => {
+        const list = (DATA.vocab[t] || []).filter(w => count[normalize(w.es)] === 1);
+        if (list.length >= 4) this._pool[t] = list;
+      });
+      this._topics = Object.keys(this._pool);
+    }
+    const topics = this._topics;
     const home = topics[Math.floor(Math.random() * topics.length)];
     let odd;
     do { odd = topics[Math.floor(Math.random() * topics.length)]; } while (odd === home);
-    const homeWords = shuffle(DATA.vocab[home].slice()).slice(0, 3);
-    const homeEs = new Set(homeWords.map(w => w.es));
+    const homeWords = shuffle(this._pool[home].slice()).slice(0, 3);
+    const homeEs = new Set(homeWords.map(w => normalize(w.es)));
     let oddWord, guard = 0;
-    do { oddWord = DATA.vocab[odd][Math.floor(Math.random() * DATA.vocab[odd].length)]; } while (homeEs.has(oddWord.es) && ++guard < 10);
+    do { oddWord = this._pool[odd][Math.floor(Math.random() * this._pool[odd].length)]; } while (homeEs.has(normalize(oddWord.es)) && ++guard < 12);
     const options = shuffle(homeWords.map(w => ({ label: w.es, correct: false })).concat([{ label: oddWord.es, correct: true }]));
     return {
       prompt: '',
