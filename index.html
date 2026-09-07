@@ -1071,6 +1071,13 @@ const DATA = {
       {en:'his/her/their (one)', es:'su'}, {en:'his/her/their (several)', es:'sus'},
       {en:'our (m)', es:'nuestro'}, {en:'our (f)', es:'nuestra'},
       {en:'your-all (m)', es:'vuestro'}, {en:'your-all (f)', es:'vuestra'}
+    ],
+    // Clothing (La Ropa lesson, Sept 2026)
+    clothing: [
+      {en:'jeans', es:'vaqueros'}, {en:'heels', es:'tacones'},
+      {en:'shorts', es:'bermudas'}, {en:'boots', es:'botas'},
+      {en:'bag', es:'bolsa'}, {en:'hoodie', es:'sudadera'},
+      {en:'bowtie', es:'corbata de moño'}, {en:'flip flops', es:'chanclas'}
     ]
   },
 
@@ -1820,7 +1827,11 @@ const DATA = {
     {noun:'silla', article:'la'}, {noun:'mesa', article:'la'},
     {noun:'panadería', article:'la'}, {noun:'cobaya', article:'la'},
     {noun:'verano', article:'el'}, {noun:'otoño', article:'el'},
-    {noun:'invierno', article:'el'}, {noun:'primavera', article:'la'}
+    {noun:'invierno', article:'el'}, {noun:'primavera', article:'la'},
+    // Clothing (singular items only; vaqueros/tacones/bermudas/botas/chanclas
+    // are naturally plural-only, like cortinas, so they're left out here):
+    {noun:'bolsa', article:'la'}, {noun:'sudadera', article:'la'},
+    {noun:'corbata de moño', article:'la'}
   ],
 
   // SENTENCES: for fill-in-blank, sentence builder, translation.
@@ -3924,7 +3935,7 @@ Games.recognition = {
     weather: 'phrase', timeOfDay: 'phrase', greetings: 'phrase',
     adjectives: 'adjective', colours: 'adjective',
     emotions: 'adjective', flavours: 'adjective', nationalities: 'adjective',
-    connectors: 'word', questions: 'phrase', possessives: 'word'
+    connectors: 'word', questions: 'phrase', possessives: 'word', clothing: 'noun'
   },
 
   _pool: null,
