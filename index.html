@@ -1077,7 +1077,13 @@ const DATA = {
       {en:'jeans', es:'vaqueros'}, {en:'heels', es:'tacones'},
       {en:'shorts', es:'bermudas'}, {en:'boots', es:'botas'},
       {en:'bag', es:'bolsa'}, {en:'hoodie', es:'sudadera'},
-      {en:'bowtie', es:'corbata de moño'}, {en:'flip flops', es:'chanclas'}
+      {en:'bowtie', es:'corbata de moño'}, {en:'flip flops', es:'chanclas'},
+      // Staple items, added for the weather/dress-up game:
+      {en:'t-shirt', es:'camiseta'}, {en:'trousers', es:'pantalones'},
+      {en:'shirt', es:'camisa'}, {en:'coat', es:'abrigo'},
+      {en:'jumper', es:'jersey'}, {en:'gloves', es:'guantes'},
+      {en:'scarf', es:'bufanda'}, {en:'hat', es:'gorro'},
+      {en:'skirt', es:'falda'}, {en:'dress', es:'vestido'}
     ]
   },
 
@@ -1828,10 +1834,15 @@ const DATA = {
     {noun:'panadería', article:'la'}, {noun:'cobaya', article:'la'},
     {noun:'verano', article:'el'}, {noun:'otoño', article:'el'},
     {noun:'invierno', article:'el'}, {noun:'primavera', article:'la'},
-    // Clothing (singular items only; vaqueros/tacones/bermudas/botas/chanclas
-    // are naturally plural-only, like cortinas, so they're left out here):
+    // Clothing (singular items only; vaqueros/tacones/bermudas/botas/chanclas/
+    // pantalones/guantes are naturally plural-only, like cortinas, so they're
+    // left out here):
     {noun:'bolsa', article:'la'}, {noun:'sudadera', article:'la'},
-    {noun:'corbata de moño', article:'la'}
+    {noun:'corbata de moño', article:'la'}, {noun:'camiseta', article:'la'},
+    {noun:'camisa', article:'la'}, {noun:'abrigo', article:'el'},
+    {noun:'jersey', article:'el'}, {noun:'bufanda', article:'la'},
+    {noun:'gorro', article:'el'}, {noun:'falda', article:'la'},
+    {noun:'vestido', article:'el'}
   ],
 
   // SENTENCES: for fill-in-blank, sentence builder, translation.
@@ -2118,7 +2129,7 @@ const DATA = {
 // STORAGE
 // =============================================================================
 const STORAGE_KEY = 'jason-spanish-app-v1';
-const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','numbers','placeAction','dialogue','recognition','house','city','clock','errands','serEstar','gustar','connectorJoin','agreement','plurals','sorting','questionWords','possessive','oddOne'];
+const GAME_KEYS = ['verbs','vocab','sentenceBuilder','fillBlank','articles','numbers','placeAction','dialogue','recognition','house','city','clock','errands','serEstar','gustar','connectorJoin','agreement','plurals','sorting','questionWords','possessive','oddOne','weatherDress'];
 
 // Use null-prototype objects so keys like "constructor", "toString", etc.
 // don't collide with Object.prototype properties.
@@ -5529,6 +5540,41 @@ Games.oddOne = makeChoiceGame({
       options,
       explain: `The others are all ${ODD_LABELS[home]}; ${oddWord.es} is ${ODD_LABELS[odd]}.`,
       itemKey: home + ':' + oddWord.es
+    };
+  }
+});
+
+// Dress for the Weather (text-first version; a picture/character upgrade is
+// a later pass, see ROADMAP.md). Only weather-associated clothing words are
+// ever the correct answer; year-round/occasion items (vaqueros, pantalones,
+// camisa, sudadera, bolsa, corbata de moño, tacones) only ever appear as
+// distractors, so every round has one clearly best answer.
+const WEATHER_OUTFITS = [
+  { weather: 'Hace mucho frío.', en: "It's very cold.", correct: 'abrigo', wrong: ['bermudas', 'chanclas', 'camiseta'], why: 'A coat suits very cold weather; the others are for summer.' },
+  { weather: 'Hace mucho frío y viento.', en: "It's very cold and windy.", correct: 'bufanda', wrong: ['falda', 'vestido', 'sudadera'], why: 'A scarf keeps your neck warm in cold, windy weather.' },
+  { weather: 'Hace frío en invierno.', en: "It's cold in winter.", correct: 'guantes', wrong: ['camiseta', 'bermudas', 'tacones'], why: 'Gloves keep your hands warm; the others suit warmer weather.' },
+  { weather: 'Hace mucho frío y nieva.', en: "It's very cold and snowing.", correct: 'gorro', wrong: ['chanclas', 'falda', 'vaqueros'], why: 'A hat keeps your head warm in the snow.' },
+  { weather: 'Hace frío por la mañana.', en: "It's cold in the morning.", correct: 'jersey', wrong: ['bermudas', 'chanclas', 'bolsa'], why: 'A jumper suits a cold morning.' },
+  { weather: 'Hace mal tiempo y frío.', en: "The weather's bad and cold.", correct: 'botas', wrong: ['chanclas', 'vestido', 'corbata de moño'], why: 'Boots suit cold, bad weather; sandals and a light dress do not.' },
+  { weather: 'Hace mucho calor.', en: "It's very hot.", correct: 'bermudas', wrong: ['abrigo', 'bufanda', 'jersey'], why: 'Shorts suit hot weather; a coat, scarf and jumper are for the cold.' },
+  { weather: 'Hace mucho calor y sol.', en: "It's very hot and sunny.", correct: 'chanclas', wrong: ['botas', 'guantes', 'pantalones'], why: 'Flip flops suit hot, sunny weather; boots and gloves do not.' },
+  { weather: 'Hace calor en verano.', en: "It's hot in summer.", correct: 'camiseta', wrong: ['jersey', 'bufanda', 'guantes'], why: 'A t-shirt suits hot summer weather; the others are for the cold.' },
+  { weather: 'Hace mucho sol y calor.', en: "It's very sunny and hot.", correct: 'falda', wrong: ['abrigo', 'bufanda', 'botas'], why: 'Light clothing suits hot weather; a coat, scarf and boots are for the cold.' },
+  { weather: 'Hace calor por la tarde.', en: "It's hot in the afternoon.", correct: 'vestido', wrong: ['guantes', 'bufanda', 'camisa'], why: 'A light dress suits warm weather; gloves and a scarf are for the cold.' }
+];
+
+Games.weatherDress = makeChoiceGame({
+  key: 'weatherDress', name: 'Dress for the Weather', description: 'Pick the right clothing for the weather',
+  ask: 'What should you wear?', weak: k => k,
+  generate() {
+    const it = pickSmart('weatherDress', WEATHER_OUTFITS, w => w.weather).item;
+    const options = shuffle([{ label: it.correct, correct: true }].concat(it.wrong.map(w => ({ label: w, correct: false }))));
+    return {
+      prompt: it.weather,
+      sub: it.en,
+      options,
+      explain: it.why,
+      itemKey: it.weather
     };
   }
 });
