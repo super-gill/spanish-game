@@ -2536,8 +2536,14 @@ Games.verbs = {
         <div class="verb-tense-pill" id="verb-tense">—</div>
         <div class="prompt-ask">Conjugate for</div>
         <div class="prompt-target" id="person-display">—</div>
-        <div class="prompt-meaning" id="verb-meaning"></div>
-        <div class="prompt-cat" id="verb-cat"></div>
+        <div class="hint-row" id="verb-meaning-row" style="margin:0.6rem 0 0 0;">
+          <button class="hint-btn">Show meaning</button>
+          <span class="hint-text hidden" id="verb-meaning"></span>
+        </div>
+        <div class="hint-row" id="verb-cat-row" style="margin:0.3rem 0 0 0;">
+          <button class="hint-btn">Show stem / category</button>
+          <span class="hint-text hidden" id="verb-cat"></span>
+        </div>
       </div>
       <div class="input-row">
         <input type="text" id="answer-input" placeholder="Type the conjugation" autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -2569,12 +2575,27 @@ Games.verbs = {
   },
 
   applyVisibility() {
-    const showMeaning = this.state.revealed || this.state.diff !== 'hard';
-    const showCat = this.state.revealed || this.state.diff === 'easy';
-    const m = document.getElementById('verb-meaning');
-    const c = document.getElementById('verb-cat');
-    if (m) m.style.visibility = showMeaning ? 'visible' : 'hidden';
-    if (c) c.style.visibility = showCat ? 'visible' : 'hidden';
+    // Difficulty controls whether a field is available to peek at all (the
+    // row is hidden entirely if not); when available, it is obscured behind
+    // a "Show..." click rather than shown outright. Once the round is over
+    // (revealed), both are forced open regardless of difficulty.
+    const revealed = this.state.revealed;
+    const meaningEligible = revealed || this.state.diff !== 'hard';
+    const catEligible = revealed || this.state.diff === 'easy';
+    const mRow = document.getElementById('verb-meaning-row');
+    const cRow = document.getElementById('verb-cat-row');
+    if (mRow) mRow.classList.toggle('hidden', !meaningEligible);
+    if (cRow) cRow.classList.toggle('hidden', !catEligible);
+    if (revealed) {
+      const mText = document.getElementById('verb-meaning');
+      const mBtn = mRow && mRow.querySelector('.hint-btn');
+      const cText = document.getElementById('verb-cat');
+      const cBtn = cRow && cRow.querySelector('.hint-btn');
+      if (mText) mText.classList.remove('hidden');
+      if (mBtn) mBtn.classList.add('hidden');
+      if (cText) cText.classList.remove('hidden');
+      if (cBtn) cBtn.classList.add('hidden');
+    }
   },
 
   catNote(verb) {
@@ -2677,8 +2698,14 @@ Games.verbs = {
     document.getElementById('verb-display').textContent = combo.verb.inf;
     document.getElementById('verb-tense').textContent = this.TENSE_LABELS[combo.tense];
     document.getElementById('verb-meaning').textContent = combo.verb.en;
+    document.getElementById('verb-meaning').classList.add('hidden');
     document.getElementById('verb-cat').textContent = this.catNote(combo.verb);
+    document.getElementById('verb-cat').classList.add('hidden');
     document.getElementById('person-display').textContent = this.PERSON_LABELS[combo.person];
+    const mBtn = document.querySelector('#verb-meaning-row .hint-btn');
+    if (mBtn) mBtn.classList.remove('hidden');
+    const cBtn = document.querySelector('#verb-cat-row .hint-btn');
+    if (cBtn) cBtn.classList.remove('hidden');
     this.applyVisibility();
     const input = document.getElementById('answer-input');
     input.value = ''; input.focus();
